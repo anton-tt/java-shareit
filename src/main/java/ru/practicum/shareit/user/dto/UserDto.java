@@ -1,4 +1,4 @@
-package ru.practicum.shareit.user.model;
+package ru.practicum.shareit.user.dto;
 
 import lombok.Builder;
 import lombok.Data;
@@ -9,7 +9,7 @@ import javax.validation.constraints.Positive;
 
 @Builder
 @Data
-public class User {
+public class UserDto {
     @Positive
     private long id;
     @NotBlank
