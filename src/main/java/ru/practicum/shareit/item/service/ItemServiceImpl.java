@@ -1,71 +1,102 @@
 package ru.practicum.shareit.item.service;
 
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Service;
 import ru.practicum.shareit.exception.NotFoundException;
+import ru.practicum.shareit.item.dto.ItemDto;
+import ru.practicum.shareit.item.mapper.ItemMapper;
 import ru.practicum.shareit.item.model.Item;
-
-import java.util.ArrayList;
-import java.util.HashMap;
+import ru.practicum.shareit.item.storage.ItemStorage;
+import ru.practicum.shareit.user.model.User;
+import ru.practicum.shareit.user.storage.UserStorage;
 import java.util.List;
-import java.util.Map;
+import java.util.stream.Collectors;
 
+@Service
+@RequiredArgsConstructor
+@Slf4j
 public class ItemServiceImpl implements ItemService {
-    private long id = 0;
-    private final Map<Long, Item> itemsMap = new HashMap<>();
+    private final UserStorage userStorage;
+    private final ItemStorage itemStorage;
 
-    private long getNextId() {
-        return ++id;
+
+    @Override
+    public ItemDto create(ItemDto itemDto, long userId) {
+        User user = userStorage.getById(userId);
+        Item item = itemStorage.create(ItemMapper.toItem(itemDto));
+        item.setOwner(user);
+        ItemDto createdItemDto = ItemMapper.toItemDto(item);
+        log.info("Новая вещь создана: {}.", createdItemDto);
+        return createdItemDto;
     }
 
     @Override
-    public Item create(Item item) {
-        item.setId(getNextId());
-        itemsMap.put(item.getId(), item);
-        return item;
-
+    public ItemDto getById(long id) {
+        ItemDto itemDto = ItemMapper.toItemDto(itemStorage.getById(id));
+        log.info("Данные вещи получены: {}.", itemDto);
+        return itemDto;
     }
 
     @Override
-    public Item getById(long id) {
-        /*if (id < 1) {
-            throw new NotFoundException(String.format("Получен некорректный id: %s - неположительное число", id));
-        }*/
-        // !(itemsMap.containsKey(id)) ? return itemsMap.get(id) : throw new NotFoundException(String.format("Вещь с id = %s отсутствует.", id));
-
-        if (!itemsMap.containsKey(id)) {
-            throw new NotFoundException(String.format("Вещь с id = %s отсутствует.", id));
-        }
-        return itemsMap.get(id);
-
+    public List<ItemDto> getItemsOneOwner(long userId) {
+        userStorage.getById(userId);
+        List<ItemDto> itemDtoList = itemStorage.getAll()
+                .stream()
+                .filter(item -> item.getOwner().getId() == userId)
+                .map(ItemMapper::toItemDto)
+                .collect(Collectors.toList());
+        log.info("Сформирован список всех вещей пользователя с id = {} " +
+                "в количестве {}.", userId, itemDtoList.size());
+        return itemDtoList;
     }
 
     @Override
-    public List<Item> getAll() {
-        List<Item> itemsList = new ArrayList<>();
-        if (!itemsMap.isEmpty()) {
-            for (Map.Entry<Long, Item> entry : itemsMap.entrySet()) {
-                itemsList.add(entry.getValue());
-            }
-        }
-        return itemsList;
-    }
+    public ItemDto update(long id, ItemDto itemDto, long userId) {
+        userStorage.getById(userId);
+        Item item = itemStorage.getById(id);
 
-    @Override
-    public Item update(Item item) {
-        long itemId = item.getId();
-        if (itemsMap.containsKey(itemId)) {
-            itemsMap.put(itemId, item);
-            return item;
+        if (item.getOwner().getId() == userId) {
+            Item updatedItem = itemStorage.update(ItemMapper.toUpdatedItem(item, itemDto));
+            ItemDto updatedItemDto = ItemMapper.toItemDto(updatedItem);
+            log.info("Данные вещи обновлены: {}.", updatedItemDto);
+            return updatedItemDto;
         } else {
-            throw new NotFoundException("Вещь, данные которой необходимо обновить, отсутствует.");
+            throw new NotFoundException(String.format("Пользователь с id = %s не является владельцем вещи с id = %s!" +
+                    "Обновить её данные невозможно.", userId, id));
         }
     }
 
     @Override
-    public void delete(long id) {
-        if (itemsMap.containsKey(id)) {
-            itemsMap.remove(id);
+    public void delete(ItemDto itemDto, long userId) {
+        userStorage.getById(userId);
+        Item item = ItemMapper.toItem(itemDto);
+        if (item.getOwner().getId() == userId) {
+            itemStorage.delete(item);
+            log.info("Все данные вещи удалены.");
         } else {
-            throw new NotFoundException(String.format("Фильм с id = %s отсутствует.", id));
+            throw new NotFoundException(String.format("Пользователь с id = %s не является владельцем вещи с id = %s!" +
+                    "Удалить её данные невозможно.", userId, item.getId()));
         }
     }
+
+    @Override
+    public List<ItemDto> search(String text) {
+        if (text.isBlank()) {
+            throw new NotFoundException("Запрос пустой, поиск невозможен!"); // ?? исключение
+        } else {
+            String lowerCaseText = text.toLowerCase();
+            List<ItemDto> itemDtoList = itemStorage.getAll()
+                    .stream()
+                    .filter(item -> item.isAvailable() == true) // !!
+                    .filter(item -> item.getName().toLowerCase().contains(lowerCaseText) ||
+                            item.getDescription().toLowerCase().contains(lowerCaseText))
+                    .map(ItemMapper::toItemDto)
+                    .collect(Collectors.toList());
+            log.info("Сформирован список всех доступных для аренды вещей в количестве {} штук" +
+                    " по запросу: {}.", itemDtoList.size(), text);
+            return itemDtoList;
+        }
+    }
+
 }

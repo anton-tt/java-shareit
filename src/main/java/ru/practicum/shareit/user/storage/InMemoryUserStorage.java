@@ -1,11 +1,15 @@
 package ru.practicum.shareit.user.storage;
 
+import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Repository;
 import ru.practicum.shareit.exception.DataConflictsException;
 import ru.practicum.shareit.exception.NotFoundException;
 import ru.practicum.shareit.user.model.User;
 import java.util.*;
 
+@Repository
+@NoArgsConstructor
 @Slf4j
 public class InMemoryUserStorage implements UserStorage {
     private int id = 0;
@@ -43,7 +47,8 @@ public class InMemoryUserStorage implements UserStorage {
             log.info("Пользователь с id = {} найден в usersMap.", id);
             return usersMap.get(id);
         } else {
-            throw new NotFoundException(String.format("Пользователь с id = %s отсутствует в usersMap.", id));
+            throw new NotFoundException(String.format("Пользователь с id = %s отсутствует в usersMap. " +
+                    "Выполнить операцию невозможно!", id));
         }
     }
 
