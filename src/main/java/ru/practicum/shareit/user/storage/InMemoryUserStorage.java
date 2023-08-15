@@ -5,6 +5,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Repository;
 import ru.practicum.shareit.exception.DataConflictsException;
 import ru.practicum.shareit.exception.NotFoundException;
+import ru.practicum.shareit.exception.ValidationException;
+import ru.practicum.shareit.user.dto.UserDto;
 import ru.practicum.shareit.user.model.User;
 import java.util.*;
 
@@ -20,25 +22,27 @@ public class InMemoryUserStorage implements UserStorage {
         return ++id;
     }
 
-    private boolean checkRecurrenceMail(String mail) {
-        boolean isRepeatedMail = false;
-        if (mailsSet.contains(mail)) {
-            isRepeatedMail = true;
-        }
-        return isRepeatedMail;
-    }
     @Override
     public User create(User user) {
         String userMail = user.getEmail();
-        if (!checkRecurrenceMail(userMail)) {
-            user.setId(getNextId());
-            usersMap.put(user.getId(), user);
-            log.info("Новый пользователь добавлен в usersMap: {}.", user);
-            return user;
-        } else {
-            throw new DataConflictsException(String.format("Пользователь с электронной почтой %s " +
+
+        if (mailsSet.contains(userMail)) {
+            throw new DataConflictsException(String.format("Пользователь с такой же электронной почтой %s " +
                     "уже существует! Добавить нового пользователя в usersMap невозможно.", userMail));
         }
+
+        if (userMail != null && userMail.contains("@")) {
+            user.setId(getNextId());
+            usersMap.put(user.getId(), user);
+            mailsSet.add(userMail);
+        } else {
+            throw new ValidationException(String.format("У пользователя электронная почта отсутствует или " +
+                    "не соответствует правильному формату: %s! Добавить нового пользователя в usersMap " +
+                    "невозможно.", userMail));
+        }
+
+        log.info("Новый пользователь добавлен в usersMap: {}.", user);
+        return user;
     }
 
     @Override
@@ -63,39 +67,43 @@ public class InMemoryUserStorage implements UserStorage {
     }
 
     @Override
-    public User update(User user) { // обновление эл. почты в Set?
-        long userId = user.getId();
-        if (usersMap.containsKey(userId)) {
-            usersMap.put(userId, user);
-            log.info("Данные пользователя с id = {} обновлены в usersMap.", userId);
-            return user;
-        } else {
-            throw new NotFoundException(String.format("Пользователь с id = %s отсутствует в usersMap! " +
-                    "Обновить его данные невозможно.", userId));
+    public User update(User updatedUser, UserDto userDto) {
+        String updatedUserEmail = updatedUser.getEmail();
+        String userDtoName = userDto.getName();
+        String userDtoEmail = userDto.getEmail();
+
+        if (userDtoName != null) {
+            updatedUser.setName(userDtoName);
+            log.info("Имя пользователя изменено на {}, новые данные сохранены в usersMap.", userDtoName);
         }
+
+        if (userDtoEmail != null)
+            if (!userDtoEmail.contains("@")) {
+                throw new ValidationException(String.format("У пользователя некорректный новой адрес " +
+                        "электронной почты: %s. Обновить данные в usersMap невозможно!", userDtoEmail));
+            } else if (!updatedUserEmail.equals(userDtoEmail) && mailsSet.contains(userDtoEmail)) {
+                throw new DataConflictsException(String.format("Пользователь с такой же электронной почтой %s " +
+                        "уже существует! Обновить данные текущего пользователя в usersMap невозможно.", userDtoEmail));
+            } else if (updatedUserEmail.equals(userDtoEmail)) {
+                log.info("Адрес новой электронной почты и адрес старой одинаковые: {}. " +
+                        "Обновление данных в usersMap не требуется.", userDtoEmail);
+            } else {
+                mailsSet.remove(updatedUserEmail);
+                updatedUser.setEmail(userDtoEmail);
+                mailsSet.add(userDtoEmail);
+                log.info("Эл.почта пользователя изменена на {}, новые данные сохранены в usersMap.", userDtoEmail);
+            }
+
+        usersMap.put(updatedUser.getId(), updatedUser);
+        return updatedUser;
     }
 
     @Override
-    public void delete(long id) {
-        if (usersMap.containsKey(id)) {
-            usersMap.remove(id);
-            log.info("Данные пользователя с id = {} удалены из usersMap.", id);
-        } else {
-            throw new NotFoundException(String.format("Пользователь с id = %s отсутствует в usersMap! " +
-                    "Удалить его данные невозможно.", id));
-        }
-    }
-
-    /*@Override
     public void delete(User user) {
-        long userId = user.getId();
-        if (usersMap.containsKey(userId)) {
-            usersMap.remove(userId);
-            log.info("Данные пользователя с id = {} удалены из usersMap.", userId);
-        } else {
-            throw new NotFoundException(String.format("Пользователь с id = %s отсутствует в usersMap! " +
-                    "Удалить его данные невозможно.", id));
-        }
-    }*/
+        mailsSet.remove(user.getEmail());
+        Long userId = user.getId();
+        usersMap.remove(userId);
+        log.info("Данные пользователя с id = {} удалены из usersMap.", userId);
+    }
 
 }

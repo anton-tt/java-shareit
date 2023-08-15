@@ -17,32 +17,38 @@ public class UserController {
 
     @PostMapping
     public UserDto createUser(@RequestBody UserDto user) {
+        log.info("");
         log.info("Добавление нового пользователя: {}", user);
         return userService.create(user);
     }
 
     @GetMapping("/{id}")
     public UserDto getUserById(@PathVariable long id) {
+        log.info("");
         log.info("Получение данных пользователя с id = {}", id);
         return userService.getById(id);
     }
 
     @GetMapping
     public List<UserDto> getAllUsers() {
+        log.info("");
         log.info("Поиск всех пользователей");
         List<UserDto> usersList = userService.getAll();
         log.info("Текущее количество пользователей: {}", usersList.size());
         return usersList;
     }
 
-    @PutMapping
-    public UserDto updateUser(@RequestBody UserDto user) {
+    @PatchMapping("/{id}")
+    public UserDto updateUser(@PathVariable long id,
+                              @RequestBody UserDto user) {
+        log.info("");
         log.info("Обновление данных пользователя: {}", user);
-        return userService.update(user);
+        return userService.update(id, user);
     }
 
     @DeleteMapping("/{id}")
     public void deleteUser(@PathVariable long id) {
+        log.info("");
         log.info("Удаление пользователя c id = {}", id);
         userService.delete(id);
     }

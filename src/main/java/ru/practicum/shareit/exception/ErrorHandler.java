@@ -15,12 +15,12 @@ import ru.yandex.practicum.filmorate.model.ErrorResponse;*/
 @Slf4j
 public class ErrorHandler {
 
-    /*@ExceptionHandler
+    @ExceptionHandler
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ErrorResponse handleValidationException(final ValidationException e) {
         log.info("Ошибка 400: {}", e.getMessage());
         return new ErrorResponse(e.getMessage());
-    }*/
+    }
 
     @ExceptionHandler
     @ResponseStatus(HttpStatus.NOT_FOUND)

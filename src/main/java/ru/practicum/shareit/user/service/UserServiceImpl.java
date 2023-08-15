@@ -17,17 +17,17 @@ public class UserServiceImpl implements UserService {
     private final UserStorage userStorage;
 
     @Override
-    public UserDto create(UserDto  userDto) {
+    public UserDto create(UserDto userDto) {
         User user = userStorage.create(UserMapper.toUser(userDto));
         UserDto createdUserDto = UserMapper.toUserDto(user);
-        log.info("Новый пользователь (userDto) создан: {}.", createdUserDto);
+        log.info("Новый пользователь создан: {}.", createdUserDto);
         return createdUserDto;
     }
 
     @Override
     public UserDto getById(long id) {
         UserDto userDto = UserMapper.toUserDto(userStorage.getById(id));
-        log.info("Данные пользователя (userDto) получены: {}.", userDto);
+        log.info("Данные пользователя получены: {}.", userDto);
         return userDto;
     }
 
@@ -37,27 +37,24 @@ public class UserServiceImpl implements UserService {
             .stream()
             .map(UserMapper::toUserDto)
             .collect(Collectors.toList());
-        log.info("Сформирован список всех пользователей (allUserDto).");
+        log.info("Сформирован список всех пользователей.");
         return allUserDto;
     }
 
     @Override
-    public UserDto update(UserDto userDto) {
-        User user = userStorage.update(UserMapper.toUser(userDto));
-        UserDto updatedUserDto = UserMapper.toUserDto(user);
-        log.info("Данные пользователя (userDto) обновлены: {}.", updatedUserDto);
+    public UserDto update(long id, UserDto userDto) {
+        User updatedUser = userStorage.getById(id);
+        User newDataUser = userStorage.update(updatedUser, userDto);
+        UserDto updatedUserDto = UserMapper.toUserDto(newDataUser);
+        log.info("Данные пользователя обновлены: {}.", updatedUserDto);
         return updatedUserDto;
     }
 
     @Override
     public void delete(long id) {
-        userStorage.delete(id);
-        log.info("Все данные пользователя (userDto) удалены.");
+        User user = userStorage.getById(id);
+        userStorage.delete(user);
+        log.info("Все данные пользователя удалены.");
     }
 
-   /* @Override
-    public void delete(UserDto userDto) {
-        userStorage.delete(UserMapper.toUser(userDto));
-        log.info("Все данные пользователя (userDto) удалены.");
-    }*/
 }
