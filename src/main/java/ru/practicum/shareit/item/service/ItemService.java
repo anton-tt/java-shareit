@@ -8,6 +8,6 @@ public interface ItemService {
     ItemDto getById(long id);
     List<ItemDto> getItemsOneOwner(long userId);
     ItemDto update(long id, ItemDto itemDto, long userId);
-    void delete(ItemDto itemDto, long userId);
+    void delete(long id, long userId);
     List<ItemDto> search(String text);
 }

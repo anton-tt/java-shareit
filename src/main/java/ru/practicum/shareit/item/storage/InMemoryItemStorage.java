@@ -59,11 +59,22 @@ public class InMemoryItemStorage implements ItemStorage {
             return item;
         } else {
             throw new NotFoundException(String.format("Вещь с id = %s отсутствует в itemsMap! " +
-                    "Обновить её данные невозможно.", id));
+                    "Обновить её данные невозможно.", itemId));
         }
     }
 
     @Override
+    public void delete(long id) {
+        if (itemsMap.containsKey(id)) {
+            itemsMap.remove(id);
+            log.info("Все данные вещи с id = {} удалены из itemsMap.", id);
+        } else {
+            throw new NotFoundException(String.format("Вещь с id = %s отсутствует в itemsMap! " +
+                    "Удалить её данные невозможно.", id));
+        }
+    }
+
+    /*@Override
     public void delete(Item item) {
         long itemId = item.getId();
         if (itemsMap.containsKey(itemId)) {
@@ -73,6 +84,6 @@ public class InMemoryItemStorage implements ItemStorage {
             throw new NotFoundException(String.format("Вещь с id = %s отсутствует в itemsMap! " +
                     "Удалить её данные невозможно.", id));
         }
-    }
+    }*/
 
 }

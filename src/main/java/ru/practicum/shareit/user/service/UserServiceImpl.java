@@ -50,9 +50,14 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public void delete(UserDto userDto) {
-        userStorage.delete(UserMapper.toUser(userDto));
+    public void delete(long id) {
+        userStorage.delete(id);
         log.info("Все данные пользователя (userDto) удалены.");
     }
 
+   /* @Override
+    public void delete(UserDto userDto) {
+        userStorage.delete(UserMapper.toUser(userDto));
+        log.info("Все данные пользователя (userDto) удалены.");
+    }*/
 }

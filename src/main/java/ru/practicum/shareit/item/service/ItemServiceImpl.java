@@ -68,6 +68,20 @@ public class ItemServiceImpl implements ItemService {
     }
 
     @Override
+    public void delete(long id, long userId) {
+        userStorage.getById(userId);
+        Item item = itemStorage.getById(id);
+        if (item.getOwner().getId() == userId) {
+            itemStorage.delete(id);
+            log.info("Все данные вещи удалены.");
+        } else {
+            throw new NotFoundException(String.format("Пользователь с id = %s не является владельцем вещи с id = %s!" +
+                    "Удалить её данные невозможно.", userId, id));
+        }
+    }
+
+    /*
+    @Override
     public void delete(ItemDto itemDto, long userId) {
         userStorage.getById(userId);
         Item item = ItemMapper.toItem(itemDto);
@@ -78,7 +92,7 @@ public class ItemServiceImpl implements ItemService {
             throw new NotFoundException(String.format("Пользователь с id = %s не является владельцем вещи с id = %s!" +
                     "Удалить её данные невозможно.", userId, item.getId()));
         }
-    }
+    } */
 
     @Override
     public List<ItemDto> search(String text) {

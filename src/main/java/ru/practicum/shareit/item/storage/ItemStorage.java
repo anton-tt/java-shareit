@@ -9,6 +9,6 @@ public interface ItemStorage {
     Item getById(long id);
     List<Item> getAll();
     Item update(Item item);
-    void delete(Item item);
+    void delete(long id);
 
 }

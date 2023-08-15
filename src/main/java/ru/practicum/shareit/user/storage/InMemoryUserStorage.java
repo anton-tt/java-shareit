@@ -71,11 +71,22 @@ public class InMemoryUserStorage implements UserStorage {
             return user;
         } else {
             throw new NotFoundException(String.format("Пользователь с id = %s отсутствует в usersMap! " +
-                    "Обновить его данные невозможно.", id));
+                    "Обновить его данные невозможно.", userId));
         }
     }
 
     @Override
+    public void delete(long id) {
+        if (usersMap.containsKey(id)) {
+            usersMap.remove(id);
+            log.info("Данные пользователя с id = {} удалены из usersMap.", id);
+        } else {
+            throw new NotFoundException(String.format("Пользователь с id = %s отсутствует в usersMap! " +
+                    "Удалить его данные невозможно.", id));
+        }
+    }
+
+    /*@Override
     public void delete(User user) {
         long userId = user.getId();
         if (usersMap.containsKey(userId)) {
@@ -85,6 +96,6 @@ public class InMemoryUserStorage implements UserStorage {
             throw new NotFoundException(String.format("Пользователь с id = %s отсутствует в usersMap! " +
                     "Удалить его данные невозможно.", id));
         }
-    }
+    }*/
 
 }
