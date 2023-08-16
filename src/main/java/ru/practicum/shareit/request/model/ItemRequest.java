@@ -5,8 +5,10 @@ import ru.practicum.shareit.user.model.User;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.Positive;
 import java.time.LocalDateTime;
+
 @Data
 public class ItemRequest {
+
     @Positive
     private long id;
     @NotBlank

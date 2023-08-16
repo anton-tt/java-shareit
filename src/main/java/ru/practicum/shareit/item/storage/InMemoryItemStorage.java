@@ -1,7 +1,6 @@
 package ru.practicum.shareit.item.storage;
 
 import lombok.NoArgsConstructor;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Repository;
 import ru.practicum.shareit.exception.NotFoundException;
@@ -43,7 +42,7 @@ public class InMemoryItemStorage implements ItemStorage {
     @Override
     public List<Item> getAll() {
         if (!itemsMap.isEmpty()) {
-            log.info("Сформирован список всех вещей в количестве {}.", itemsMap.size());
+            log.info("Сформирован список всех имеющихся вещей в количестве {}.", itemsMap.size());
             return new ArrayList<>(itemsMap.values());
         } else {
             throw new NotFoundException("itemsMap не содержит элементов, вывести список всех вещей невозможно!");
@@ -73,17 +72,5 @@ public class InMemoryItemStorage implements ItemStorage {
                     "Удалить её данные невозможно.", id));
         }
     }
-
-    /*@Override
-    public void delete(Item item) {
-        long itemId = item.getId();
-        if (itemsMap.containsKey(itemId)) {
-            itemsMap.remove(itemId);
-            log.info("Все данные вещи с id = {} удалены из itemsMap.", itemId);
-        } else {
-            throw new NotFoundException(String.format("Вещь с id = %s отсутствует в itemsMap! " +
-                    "Удалить её данные невозможно.", id));
-        }
-    }*/
 
 }

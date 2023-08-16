@@ -33,9 +33,7 @@ public class UserController {
     public List<UserDto> getAllUsers() {
         log.info("");
         log.info("Поиск всех пользователей");
-        List<UserDto> usersList = userService.getAll();
-        log.info("Текущее количество пользователей: {}", usersList.size());
-        return usersList;
+        return userService.getAll();
     }
 
     @PatchMapping("/{id}")

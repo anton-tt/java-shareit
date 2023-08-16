@@ -10,6 +10,7 @@ import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.item.storage.ItemStorage;
 import ru.practicum.shareit.user.model.User;
 import ru.practicum.shareit.user.storage.UserStorage;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -17,9 +18,9 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 @Slf4j
 public class ItemServiceImpl implements ItemService {
-    private final UserStorage userStorage;
-    private final ItemStorage itemStorage;
 
+    private final ItemStorage itemStorage;
+    private final UserStorage userStorage;
 
     @Override
     public ItemDto create(ItemDto itemDto, long userId) {
@@ -80,37 +81,22 @@ public class ItemServiceImpl implements ItemService {
         }
     }
 
-    /*
-    @Override
-    public void delete(ItemDto itemDto, long userId) {
-        userStorage.getById(userId);
-        Item item = ItemMapper.toItem(itemDto);
-        if (item.getOwner().getId() == userId) {
-            itemStorage.delete(item);
-            log.info("Все данные вещи удалены.");
-        } else {
-            throw new NotFoundException(String.format("Пользователь с id = %s не является владельцем вещи с id = %s!" +
-                    "Удалить её данные невозможно.", userId, item.getId()));
-        }
-    } */
-
     @Override
     public List<ItemDto> search(String text) {
-        if (text.isBlank()) {
-            throw new NotFoundException("Запрос пустой, поиск невозможен!"); // ?? исключение
-        } else {
+        List<ItemDto> itemDtoList = new ArrayList<>();
+        if (!text.isBlank()) {
             String lowerCaseText = text.toLowerCase();
-            List<ItemDto> itemDtoList = itemStorage.getAll()
+            itemDtoList = itemStorage.getAll()
                     .stream()
-                    .filter(item -> item.isAvailable() == true) // !!
+                    .filter(Item::isAvailable)
                     .filter(item -> item.getName().toLowerCase().contains(lowerCaseText) ||
                             item.getDescription().toLowerCase().contains(lowerCaseText))
                     .map(ItemMapper::toItemDto)
                     .collect(Collectors.toList());
-            log.info("Сформирован список всех доступных для аренды вещей в количестве {} штук" +
-                    " по запросу: {}.", itemDtoList.size(), text);
-            return itemDtoList;
         }
+        log.info("Сформирован список всех доступных для аренды вещей в количестве {} штук" +
+                " по запросу: {}.", itemDtoList.size(), text);
+        return itemDtoList;
     }
 
 }

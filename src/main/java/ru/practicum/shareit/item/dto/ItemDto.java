@@ -11,6 +11,7 @@ import javax.validation.constraints.Positive;
 @Builder
 @Data
 public class ItemDto {
+
     @Positive
     private long id;
     @NotBlank
@@ -18,7 +19,7 @@ public class ItemDto {
     @NotBlank
     private String description;
     @NotNull
-    private boolean available;
+    private Boolean available;
     private User owner;
     private ItemRequest request;
 

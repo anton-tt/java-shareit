@@ -19,6 +19,7 @@ public class ItemController {
     @PostMapping
     public ItemDto createItem(@RequestHeader(X_SHARER_USER_ID) long userId,
                               @RequestBody ItemDto item) {
+        log.info("");
         log.info("Добавление новой вещи: {}", item);
         return itemService.create(item, userId);
     }
@@ -26,22 +27,24 @@ public class ItemController {
     @GetMapping("/{id}")
     public ItemDto getItemById(@RequestHeader(X_SHARER_USER_ID) long userId,
                                @PathVariable long id) {
+        log.info("");
         log.info("Получение данных вещи с id = {}", id);
         return itemService.getById(id);
     }
 
     @GetMapping
     public List<ItemDto> getItemsOneUser(@RequestHeader(X_SHARER_USER_ID) long userId) {
-        log.info("Поиск всех созданных вещей одного пользователя");
+        log.info("");
+        log.info("Поиск всех вещей, созданных одним пользователем");
         List<ItemDto> itemsList = itemService.getItemsOneOwner(userId);
-        log.info("Текущее количество вещей: {}", itemsList.size());
         return itemsList;
     }
 
-    @PutMapping
+    @PatchMapping("/{id}")
     public ItemDto updateItem(@RequestHeader(X_SHARER_USER_ID) long userId,
                               @PathVariable long id,
                               @RequestBody ItemDto item) {
+        log.info("");
         log.info("Обновление данных вещи: {}", item);
         return itemService.update(id, item, userId);
     }
@@ -49,6 +52,7 @@ public class ItemController {
     @DeleteMapping("/{id}")
     public void deleteItem(@RequestHeader(X_SHARER_USER_ID) long userId,
                            @PathVariable long id) {
+        log.info("");
         log.info("Удаление вещи c id = {}", id);
         itemService.delete(id, userId);
     }
@@ -56,9 +60,9 @@ public class ItemController {
     @GetMapping("/search")
     public List<ItemDto> searchItems(@RequestHeader(X_SHARER_USER_ID) long userId,
                                      @RequestParam String text) {
+        log.info("");
         log.info("Поиск вещей по определённому запросу пользователя");
         List<ItemDto> itemsList = itemService.search(text);
-        log.info("Текущее количество найденных вещей: {}", itemsList.size());
         return itemsList;
     }
 
