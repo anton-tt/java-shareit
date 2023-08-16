@@ -1,9 +1,11 @@
 package ru.practicum.shareit.item.mapper;
 
+import lombok.extern.slf4j.Slf4j;
 import ru.practicum.shareit.exception.ValidationException;
 import ru.practicum.shareit.item.dto.ItemDto;
 import ru.practicum.shareit.item.model.Item;
 
+@Slf4j
 public class ItemMapper {
     public static ItemDto toItemDto(Item item) {
         return ItemDto.builder()
@@ -45,15 +47,17 @@ public class ItemMapper {
 
         if (itemDtoName != null && !itemDtoName.isEmpty()) {
             updatedItem.setName(newItemDto.getName());
+            log.info("Имя вещи изменено на {}.", itemDtoName);
         }
         if (itemDtoDescription != null && !itemDtoDescription.isEmpty()) {
             updatedItem.setDescription(newItemDto.getDescription());
+            log.info("Описание вещи изменено на {}.", itemDtoDescription);
         }
         if (isAvailable != null) {
             updatedItem.setAvailable(isAvailable);
+            log.info("Статус бронирования вещи изменён на {}.", isAvailable);
         }
         return updatedItem;
-
     }
 
 }

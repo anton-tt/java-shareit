@@ -10,6 +10,7 @@ import javax.validation.constraints.Positive;
 @Builder
 @Data
 public class UserDto {
+
     @Positive
     private long id;
     @NotBlank

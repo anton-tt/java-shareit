@@ -1,5 +1,6 @@
 package ru.practicum.shareit.user.storage;
 
+import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Repository;
@@ -15,6 +16,7 @@ import java.util.*;
 @Slf4j
 public class InMemoryUserStorage implements UserStorage {
     private int id = 0;
+    @Getter
     private final Map<Long, User> usersMap = new HashMap<>();
     Set<String> mailsSet = new HashSet<>();
 
@@ -25,22 +27,13 @@ public class InMemoryUserStorage implements UserStorage {
     @Override
     public User create(User user) {
         String userMail = user.getEmail();
-
         if (mailsSet.contains(userMail)) {
             throw new DataConflictsException(String.format("Пользователь с такой же электронной почтой %s " +
                     "уже существует! Добавить нового пользователя в usersMap невозможно.", userMail));
         }
-
-        if (userMail != null && userMail.contains("@")) {
-            user.setId(getNextId());
-            usersMap.put(user.getId(), user);
-            mailsSet.add(userMail);
-        } else {
-            throw new ValidationException(String.format("У пользователя электронная почта отсутствует или " +
-                    "не соответствует правильному формату: %s! Добавить нового пользователя в usersMap " +
-                    "невозможно.", userMail));
-        }
-
+        user.setId(getNextId());
+        usersMap.put(user.getId(), user);
+        mailsSet.add(userMail);
         log.info("Новый пользователь добавлен в usersMap: {}.", user);
         return user;
     }
