@@ -6,9 +6,13 @@ import java.util.List;
 public interface ItemStorage {
 
     Item create(Item item);
+
     Item getById(long id);
+
     List<Item> getAll();
+
     Item update(Item item);
+
     void delete(long id);
 
 }
