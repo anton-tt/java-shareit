@@ -14,7 +14,7 @@ import java.util.HashMap;
 @NoArgsConstructor
 @Slf4j
 public class InMemoryItemStorage implements ItemStorage {
-    private int id = 0;
+    private int id;
     private final Map<Long, Item> itemsMap = new HashMap<>();
 
     private int getNextId() {

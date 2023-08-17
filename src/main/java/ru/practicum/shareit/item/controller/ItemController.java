@@ -36,8 +36,7 @@ public class ItemController {
     public List<ItemDto> getItemsOneUser(@RequestHeader(X_SHARER_USER_ID) long userId) {
         log.info("");
         log.info("Поиск всех вещей, созданных одним пользователем");
-        List<ItemDto> itemsList = itemService.getItemsOneOwner(userId);
-        return itemsList;
+        return itemService.getItemsOneOwner(userId);
     }
 
     @PatchMapping("/{id}")

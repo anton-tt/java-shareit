@@ -15,10 +15,9 @@ import java.util.*;
 @NoArgsConstructor
 @Slf4j
 public class InMemoryUserStorage implements UserStorage {
-    private int id = 0;
-    @Getter
+    private int id;
     private final Map<Long, User> usersMap = new HashMap<>();
-    Set<String> mailsSet = new HashSet<>();
+    private final Set<String> mailsSet = new HashSet<>();
 
     private int getNextId() {
         return ++id;
@@ -70,11 +69,11 @@ public class InMemoryUserStorage implements UserStorage {
             log.info("Имя пользователя изменено на {}, новые данные сохранены в usersMap.", userDtoName);
         }
 
-        if (userDtoEmail != null)
+        if (userDtoEmail != null) {
             if (!userDtoEmail.contains("@")) {
-                throw new ValidationException(String.format("У пользователя некорректный новой адрес " +
+                throw new ValidationException(String.format("У пользователя некорректный новый адрес " +
                         "электронной почты: %s. Обновить данные в usersMap невозможно!", userDtoEmail));
-            } else if (!updatedUserEmail.equals(userDtoEmail) && mailsSet.contains(userDtoEmail)) {
+            } else if (!(updatedUserEmail.equals(userDtoEmail)) && (mailsSet.contains(userDtoEmail))) {
                 throw new DataConflictsException(String.format("Пользователь с такой же электронной почтой %s " +
                         "уже существует! Обновить данные текущего пользователя в usersMap невозможно.", userDtoEmail));
             } else if (updatedUserEmail.equals(userDtoEmail)) {
@@ -86,6 +85,7 @@ public class InMemoryUserStorage implements UserStorage {
                 mailsSet.add(userDtoEmail);
                 log.info("Эл.почта пользователя изменена на {}, новые данные сохранены в usersMap.", userDtoEmail);
             }
+        }
 
         usersMap.put(updatedUser.getId(), updatedUser);
         return updatedUser;

@@ -7,6 +7,11 @@ import ru.practicum.shareit.item.model.Item;
 
 @Slf4j
 public class ItemMapper {
+
+    private ItemMapper() {
+
+    }
+
     public static ItemDto toItemDto(Item item) {
         return ItemDto.builder()
             .id(item.getId())
