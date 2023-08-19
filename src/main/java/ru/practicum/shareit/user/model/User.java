@@ -11,7 +11,7 @@ import javax.validation.constraints.Positive;
 @Data
 public class User {
 
-    @Positive
+
     private long id;
     @NotBlank
     private String name;
