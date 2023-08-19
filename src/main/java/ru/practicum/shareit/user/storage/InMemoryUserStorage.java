@@ -10,7 +10,7 @@ import ru.practicum.shareit.user.dto.UserDto;
 import ru.practicum.shareit.user.model.User;
 import java.util.*;
 
-@Repository
+//@Repository
 @NoArgsConstructor
 @Slf4j
 public class InMemoryUserStorage implements UserStorage {

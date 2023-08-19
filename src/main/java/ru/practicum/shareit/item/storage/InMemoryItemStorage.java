@@ -10,7 +10,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.HashMap;
 
-@Repository
+//@Repository
 @NoArgsConstructor
 @Slf4j
 public class InMemoryItemStorage implements ItemStorage {
