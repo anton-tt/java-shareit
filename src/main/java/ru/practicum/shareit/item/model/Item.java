@@ -22,9 +22,9 @@ public class Item {
     private String description;
     @Column(name = "is_available", nullable = false)
     private boolean available;
-    @Column(name = "owner_id", nullable = false)
-    private long ownerId;
+    @Column(name = "owner_id")
+    private Long ownerId;
     @Column(name = "request_id")
-    private long requestId;
+    private Long requestId;
 
 }

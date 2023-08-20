@@ -1,7 +1,8 @@
-package ru.practicum.shareit.user.repository;
+package ru.practicum.shareit.user.storage;
 
 import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Repository;
 import ru.practicum.shareit.exception.DataConflictsException;
 import ru.practicum.shareit.exception.NotFoundException;
 import ru.practicum.shareit.exception.ValidationException;
@@ -9,7 +10,8 @@ import ru.practicum.shareit.user.dto.UserDto;
 import ru.practicum.shareit.user.model.User;
 import java.util.*;
 
-//@Repository
+@Deprecated
+@Repository
 @NoArgsConstructor
 @Slf4j
 public class InMemoryUserStorage implements UserStorage {

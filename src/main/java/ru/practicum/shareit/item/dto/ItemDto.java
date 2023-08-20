@@ -18,7 +18,6 @@ public class ItemDto {
     private String description;
     @NonNull
     private Boolean available;
-    //private final long ownerId;
-    private final long requestId;
+    private Long requestId;
 
 }

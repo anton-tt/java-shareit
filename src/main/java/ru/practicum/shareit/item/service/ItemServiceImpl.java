@@ -24,9 +24,9 @@ public class ItemServiceImpl implements ItemService {
 
     @Override
     public ItemDto create(ItemDto itemDto, long userId) {
-        User user = userStorage.getById(userId);
+        //User user = userStorage.getById(userId);
         Item item = itemStorage.create(ItemMapper.toItem(itemDto));
-        item.setOwner(user);
+        item.setOwnerId(userId);
         ItemDto createdItemDto = ItemMapper.toItemDto(item);
         log.info("Новая вещь создана: {}.", createdItemDto);
         return createdItemDto;
@@ -44,7 +44,7 @@ public class ItemServiceImpl implements ItemService {
         userStorage.getById(userId);
         List<ItemDto> itemDtoList = itemStorage.getAll()
                 .stream()
-                .filter(item -> item.getOwner().getId() == userId)
+                .filter(item -> item.getOwnerId() == userId)
                 .map(ItemMapper::toItemDto)
                 .collect(Collectors.toList());
         log.info("Сформирован список всех вещей пользователя с id = {} " +
@@ -57,7 +57,7 @@ public class ItemServiceImpl implements ItemService {
         userStorage.getById(userId);
         Item item = itemStorage.getById(id);
 
-        if (item.getOwner().getId() == userId) {
+        if (item.getOwnerId() == userId) {
             Item updatedItem = itemStorage.update(ItemMapper.toUpdatedItem(item, itemDto));
             ItemDto updatedItemDto = ItemMapper.toItemDto(updatedItem);
             log.info("Данные вещи обновлены: {}.", updatedItemDto);
@@ -72,7 +72,7 @@ public class ItemServiceImpl implements ItemService {
     public void delete(long id, long userId) {
         userStorage.getById(userId);
         Item item = itemStorage.getById(id);
-        if (item.getOwner().getId() == userId) {
+        if (item.getOwnerId() == userId) {
             itemStorage.delete(id);
             log.info("Все данные вещи удалены.");
         } else {
