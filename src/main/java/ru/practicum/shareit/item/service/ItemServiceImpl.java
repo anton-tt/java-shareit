@@ -7,9 +7,8 @@ import ru.practicum.shareit.exception.NotFoundException;
 import ru.practicum.shareit.item.dto.ItemDto;
 import ru.practicum.shareit.item.mapper.ItemMapper;
 import ru.practicum.shareit.item.model.Item;
-import ru.practicum.shareit.item.storage.ItemStorage;
-import ru.practicum.shareit.user.model.User;
-import ru.practicum.shareit.user.storage.UserStorage;
+import ru.practicum.shareit.item.repository.ItemRepository;
+import ru.practicum.shareit.user.repository.UserRepository;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -19,14 +18,16 @@ import java.util.stream.Collectors;
 @Slf4j
 public class ItemServiceImpl implements ItemService {
 
-    private final ItemStorage itemStorage;
-    private final UserStorage userStorage;
+    private final ItemRepository itemRepository;
+    private final UserRepository userRepository;
 
     @Override
     public ItemDto create(ItemDto itemDto, long userId) {
-        //User user = userStorage.getById(userId);
-        Item item = itemStorage.create(ItemMapper.toItem(itemDto));
-        item.setOwnerId(userId);
+        Item dataItem = ItemMapper.toItem(itemDto, userId);
+        userRepository.findById(userId).orElseThrow(() -> new NotFoundException(String.format("Пользователь " +
+               "с id = %s отсутствует в БД. Выполнить операцию невозможно!", userId)));
+        Item item = itemRepository.save(dataItem);
+        log.info("Данные вещи добавлены в БД: {}.", item);
         ItemDto createdItemDto = ItemMapper.toItemDto(item);
         log.info("Новая вещь создана: {}.", createdItemDto);
         return createdItemDto;
@@ -34,32 +35,39 @@ public class ItemServiceImpl implements ItemService {
 
     @Override
     public ItemDto getById(long id) {
-        ItemDto itemDto = ItemMapper.toItemDto(itemStorage.getById(id));
+        Item item = itemRepository.findById(id).orElseThrow(() -> new NotFoundException(String.format("Вещь " +
+                "с id = %s отсутствует в БД. Выполнить операцию невозможно!", id)));
+        log.info("Вещь найдена в БД: {}.", item);
+        ItemDto itemDto = ItemMapper.toItemDto(item);
         log.info("Данные вещи получены: {}.", itemDto);
         return itemDto;
     }
 
     @Override
     public List<ItemDto> getItemsOneOwner(long userId) {
-        userStorage.getById(userId);
-        List<ItemDto> itemDtoList = itemStorage.getAll()
+        userRepository.findById(userId).orElseThrow(() -> new NotFoundException(String.format("Пользователь " +
+                "с id = %s отсутствует в БД. Выполнить операцию невозможно!", userId)));
+        log.info("Получение данных всех вещей пользователя из БД.");
+        List<ItemDto> itemDtoList = itemRepository.findAll()
                 .stream()
                 .filter(item -> item.getOwnerId() == userId)
                 .map(ItemMapper::toItemDto)
                 .collect(Collectors.toList());
-        log.info("Сформирован список всех вещей пользователя с id = {} " +
-                "в количестве {}.", userId, itemDtoList.size());
+        log.info("Сформирован список всех вещей пользователя с id = {} в количестве {}.", userId, itemDtoList.size());
         return itemDtoList;
     }
 
     @Override
     public ItemDto update(long id, ItemDto itemDto, long userId) {
-        userStorage.getById(userId);
-        Item item = itemStorage.getById(id);
-
+        userRepository.findById(userId).orElseThrow(() -> new NotFoundException(String.format("Пользователь " +
+                "с id = %s отсутствует в БД. Выполнить операцию невозможно!", userId)));
+        Item item = itemRepository.findById(id).orElseThrow(() -> new NotFoundException(String.format("Вещь " +
+                "с id = %s отсутствует в БД. Выполнить операцию невозможно!", id)));
+        log.info("Вещь найдена в БД: {}.", item);
         if (item.getOwnerId() == userId) {
-            Item updatedItem = itemStorage.update(ItemMapper.toUpdatedItem(item, itemDto));
-            ItemDto updatedItemDto = ItemMapper.toItemDto(updatedItem);
+            Item newDataItem = itemRepository.save(ItemMapper.toUpdatedItem(item, itemDto));
+            log.info("Данные вещи обновлены в БД: {}.", newDataItem);
+            ItemDto updatedItemDto = ItemMapper.toItemDto(newDataItem);
             log.info("Данные вещи обновлены: {}.", updatedItemDto);
             return updatedItemDto;
         } else {
@@ -70,10 +78,13 @@ public class ItemServiceImpl implements ItemService {
 
     @Override
     public void delete(long id, long userId) {
-        userStorage.getById(userId);
-        Item item = itemStorage.getById(id);
+        userRepository.findById(userId).orElseThrow(() -> new NotFoundException(String.format("Пользователь " +
+                "с id = %s отсутствует в БД. Выполнить операцию невозможно!", userId)));
+        Item item = itemRepository.findById(id).orElseThrow(() -> new NotFoundException(String.format("Вещь " +
+                "с id = %s отсутствует в БД. Выполнить операцию невозможно!", id)));
+        log.info("Вещь найдена в БД: {}.", item);
         if (item.getOwnerId() == userId) {
-            itemStorage.delete(id);
+            itemRepository.delete(item);
             log.info("Все данные вещи удалены.");
         } else {
             throw new NotFoundException(String.format("Пользователь с id = %s не является владельцем вещи с id = %s!" +
@@ -85,12 +96,9 @@ public class ItemServiceImpl implements ItemService {
     public List<ItemDto> search(String text) {
         List<ItemDto> itemDtoList = new ArrayList<>();
         if (!text.isBlank()) {
-            String lowerCaseText = text.toLowerCase();
-            itemDtoList = itemStorage.getAll()
+            itemDtoList = itemRepository.search(text)
                     .stream()
                     .filter(Item::isAvailable)
-                    .filter(item -> item.getName().toLowerCase().contains(lowerCaseText) ||
-                            item.getDescription().toLowerCase().contains(lowerCaseText))
                     .map(ItemMapper::toItemDto)
                     .collect(Collectors.toList());
         }

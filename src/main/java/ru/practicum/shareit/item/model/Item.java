@@ -1,11 +1,15 @@
 package ru.practicum.shareit.item.model;
 
-import lombok.Builder;
-import lombok.Data;
+import lombok.*;
 import javax.persistence.*;
 import javax.validation.constraints.NotBlank;
 
-@Data
+@Getter
+@Setter
+@ToString
+@EqualsAndHashCode
+@NoArgsConstructor
+@AllArgsConstructor
 @Builder
 @Entity
 @Table(name = "items", schema = "public")
@@ -22,7 +26,7 @@ public class Item {
     private String description;
     @Column(name = "is_available", nullable = false)
     private boolean available;
-    @Column(name = "owner_id")
+    @Column(name = "owner_id", nullable = false)
     private Long ownerId;
     @Column(name = "request_id")
     private Long requestId;

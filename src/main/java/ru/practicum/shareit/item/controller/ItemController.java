@@ -35,7 +35,7 @@ public class ItemController {
     @GetMapping
     public List<ItemDto> getItemsOneUser(@RequestHeader(X_SHARER_USER_ID) long userId) {
         log.info("");
-        log.info("Поиск всех вещей, созданных одним пользователем");
+        log.info("Поиск всех вещей, созданных пользователем с id = {}", userId);
         return itemService.getItemsOneOwner(userId);
     }
 
@@ -44,7 +44,7 @@ public class ItemController {
                               @PathVariable long id,
                               @RequestBody ItemDto item) {
         log.info("");
-        log.info("Обновление данных вещи: {}", item);
+        log.info("Обновление данных вещи с id = {}: {}", id, item);
         return itemService.update(id, item, userId);
     }
 

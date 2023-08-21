@@ -38,11 +38,12 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public List<UserDto> getAll() {
+        log.info("Получение данных всех пользователей из БД.");
         List<UserDto> allUserDto = userRepository.findAll()
             .stream()
             .map(UserMapper::toUserDto)
             .collect(Collectors.toList());
-        log.info("Сформирован список всех пользователей.");
+        log.info("Сформирован список всех пользователей в количестве: {}.", allUserDto.size());
         return allUserDto;
     }
 

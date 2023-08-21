@@ -22,7 +22,7 @@ public class ItemMapper {
             .build();
     }
 
-    public static Item toItem(ItemDto itemDto) {
+    public static Item toItem(ItemDto itemDto, long ownerId) {
         String itemDtoName = itemDto.getName();
         String itemDtoDescription = itemDto.getDescription();
         Boolean isAvailable = itemDto.getAvailable();
@@ -39,6 +39,7 @@ public class ItemMapper {
                     .name(itemDtoName)
                     .description(itemDtoDescription)
                     .available(isAvailable)
+                    .ownerId(ownerId)
                     .requestId(itemDto.getRequestId() != null ? itemDto.getRequestId() : null)
                     .build();
         }

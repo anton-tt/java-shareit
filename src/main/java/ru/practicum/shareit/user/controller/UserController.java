@@ -40,7 +40,7 @@ public class UserController {
     public UserDto updateUser(@PathVariable long id,
                               @RequestBody UserDto user) {
         log.info("");
-        log.info("Обновление данных пользователя: {}", user);
+        log.info("Обновление данных пользователя с id = {}: {}", id, user);
         return userService.update(id, user);
     }
 
