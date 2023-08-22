@@ -1,11 +1,17 @@
 package ru.practicum.shareit.booking.model;
 
-import lombok.Data;
+import lombok.*;
 import javax.persistence.*;
 import javax.validation.constraints.Future;
 import java.time.LocalDateTime;
 
-@Data
+@Getter
+@Setter
+@ToString
+@EqualsAndHashCode
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
 @Entity
 @Table(name = "bookings", schema = "public")
 public class Booking {
