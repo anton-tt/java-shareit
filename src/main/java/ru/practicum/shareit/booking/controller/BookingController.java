@@ -23,6 +23,25 @@ public class BookingController {
         return bookingService.create(booking, userId);
     }
 
+
+    @PatchMapping("/{bookingId}")
+    public FinalBookingDto approveBooking(@RequestHeader(X_SHARER_USER_ID) long userId,
+                                          @PathVariable long bookingId,
+                                          @RequestParam boolean approved) {
+        log.info("");
+        log.info("Обновление статуса запроса на бронирование с id = {}", bookingId);
+        return bookingService.approve(bookingId, approved, userId);
+    }
+
+    /*@PatchMapping("/{bookingId}")
+    public FinalBookingDto approve(@RequestHeader(X_SHARER_USER_ID) long userId,
+                                   @PathVariable long bookingId,
+                                      @RequestParam boolean approved) {
+        log.info("");
+        log.info("Обновление статуса запроса на бронирование с id = {}", bookingId);
+        return bookingService.approve(bookingId, approved, userId);
+    }
+
    /* @GetMapping("/{bookingId}")
     public BookingDto getBookingById(@RequestHeader(X_SHARER_USER_ID) long userId,
                                      @PathVariable long id) {
@@ -38,7 +57,7 @@ public class BookingController {
         log.info("Поиск всех бронирований, запрошенных пользователем с id = {}", userId);
         return bookingService.getBookingsOneUser(userId, state);
     }
-// посмотреть аннотации!!!!
+
     @GetMapping("/owner")
     public List<BookingDto> getBookingsOneOwner(@RequestHeader(X_SHARER_USER_ID) long userId,
                                                @RequestParam (defaultValue = "All") String state) {
@@ -47,13 +66,6 @@ public class BookingController {
         return bookingService.getBookingsOneOwner(userId, state);
     }
 
-    @PatchMapping("/{bookingId}")
-    public BookingDto approveBooking(@RequestHeader(X_SHARER_USER_ID) long userId,
-                              @PathVariable long id,
-                              @RequestParam boolean approved) {
-        log.info("");
-        log.info("Обновление статуса запроса на бронирование с id = {}", id);
-        return bookingService.approve(id, approved, userId);
-    }*/
+    */
 
 }

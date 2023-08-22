@@ -7,6 +7,7 @@ import ru.practicum.shareit.booking.dto.FinalBookingDto;
 import ru.practicum.shareit.booking.dto.InitialBookingDto;
 import ru.practicum.shareit.booking.mapper.BookingMapper;
 import ru.practicum.shareit.booking.model.Booking;
+import ru.practicum.shareit.booking.model.Status;
 import ru.practicum.shareit.booking.repository.BookingRepository;
 import ru.practicum.shareit.exception.NotFoundException;
 import ru.practicum.shareit.exception.ValidationException;
@@ -53,6 +54,50 @@ public class BookingServiceImpl implements BookingService {
         }
     }
 
+    @Override
+    public FinalBookingDto approve(long id, boolean approved, long userId) {
+        userRepository.findById(userId).orElseThrow(() -> new NotFoundException(String.format("Пользователь " +
+                "с id = %s, который хочет изменить статус бронирования, отсутствует в БД. " +
+                "Выполнить операцию невозможно!", userId)));
+        Booking initialBooking = bookingRepository.findById(id).orElseThrow(() -> new NotFoundException(
+                String.format("Бронирование с id = %s отсутствует в БД. Выполнить операцию невозможно!", id)));
+        long itemId = initialBooking.getItemId();
+        Item item = itemRepository.findById(itemId).orElseThrow(() -> new NotFoundException(String.format("Вещь " +
+                "с id = %s отсутствует в БД. Выполнить операцию невозможно!", itemId)));
+
+        if (item.getOwnerId() != userId) {
+            throw new NotFoundException(String.format("Пользователь с id = %s не является владельцем вещи с id = %s!" +
+                    "Изменить статус бронирования этой вещи невозможно.", userId, itemId));
+        }
+
+        Booking booking = changeBookingStatus(approved, initialBooking);
+        long bookerId = booking.getBookerId();
+        User booker = userRepository.findById(bookerId).orElseThrow(() -> new NotFoundException(
+                String.format("Пользователь с id = %s, который ранее создал бронирование, отсутствует в БД. " +
+                        "Выполнить операцию невозможно!", bookerId)));
+        UserDto bookerDto = UserMapper.toUserDto(booker);
+        ItemDto itemDto = ItemMapper.toItemDto(item);
+        FinalBookingDto bookingDto = BookingMapper.toFinalBookingDto(booking, itemDto, bookerDto);
+        log.info("Статус бронирования изменён хозяином вещи: {}.", bookingDto);
+        return bookingDto;
+    }
+
+    private Booking changeBookingStatus(boolean approved, Booking initialBooking) {
+        Status newBookingStatus;
+        if (approved) {
+            newBookingStatus = Status.APPROVED;
+        } else {
+            newBookingStatus = Status.REJECTED;
+        }
+        log.info("Новый статус бронирования: {}.", newBookingStatus);
+
+        initialBooking.setStatus(newBookingStatus);
+        Booking booking = bookingRepository.save(initialBooking);
+        log.info("Статус бронирования вещи изменён в БД: {}.", booking);
+        return booking;
+    }
+
+
     /*@Override
     public BookingDto getById(long id) {
         //User user = userRepository.findById(id).orElseThrow(() -> new NotFoundException(String.format("Пользователь " +
@@ -92,10 +137,6 @@ public class BookingServiceImpl implements BookingService {
     /*    return //itemDtoList;
     }
 
-    @Override
-    public BookingDto approveBooking(long id, boolean approved, long userId) {
 
-        return
-    }
 */
 }
