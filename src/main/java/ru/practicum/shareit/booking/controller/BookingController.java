@@ -6,6 +6,7 @@ import org.springframework.web.bind.annotation.*;
 import ru.practicum.shareit.booking.dto.FinalBookingDto;
 import ru.practicum.shareit.booking.dto.InitialBookingDto;
 import ru.practicum.shareit.booking.service.BookingService;
+import java.util.List;
 import static ru.practicum.shareit.utils.Constants.X_SHARER_USER_ID;
 
 @RestController
@@ -33,32 +34,33 @@ public class BookingController {
         return bookingService.approve(bookingId, approved, userId);
     }
 
-    /*@PatchMapping("/{bookingId}")
-    public FinalBookingDto approve(@RequestHeader(X_SHARER_USER_ID) long userId,
-                                   @PathVariable long bookingId,
-                                      @RequestParam boolean approved) {
-        log.info("");
-        log.info("Обновление статуса запроса на бронирование с id = {}", bookingId);
-        return bookingService.approve(bookingId, approved, userId);
-    }
 
-   /* @GetMapping("/{bookingId}")
-    public BookingDto getBookingById(@RequestHeader(X_SHARER_USER_ID) long userId,
-                                     @PathVariable long id) {
+   @GetMapping("/{bookingId}")
+    public FinalBookingDto getBookingById(@RequestHeader(X_SHARER_USER_ID) long userId,
+                                          @PathVariable long bookingId) {
         log.info("");
-        log.info("Получение данных бронирования с id = {}", id);
-        return bookingService.getById(id);
+        log.info("Получение данных бронирования с id = {}", bookingId);
+        return bookingService.getById(bookingId);
     }
 
     @GetMapping
-    public List<BookingDto> getBookingsOneUser(@RequestHeader(X_SHARER_USER_ID) long userId,
-                                               @RequestParam (defaultValue = "All") String state) {
+    public List<FinalBookingDto> getBookingsOneUser(@RequestHeader(X_SHARER_USER_ID) long userId,
+                                                    @RequestParam(defaultValue = "ALL") String state) {
         log.info("");
-        log.info("Поиск всех бронирований, запрошенных пользователем с id = {}", userId);
-        return bookingService.getBookingsOneUser(userId, state);
+        log.info("Поиск и сортировка бронирований, запрошенных пользователем с id = {}", userId);
+        return bookingService.getBookingsOneBooker(userId, state);
     }
 
-    @GetMapping("/owner")
+    /*@GetMapping
+    public ResponseEntity<List<FullBookingDto>> getAllBookingsByBookerId(@RequestHeader(HEADER_USER) long bookerId,
+                                                                         @RequestParam(defaultValue = "ALL") BookingState state) {
+
+        return new ResponseEntity<>(bookingService.getAllBookingsByBookerId(bookerId, state), HttpStatus.OK);
+    }*/
+
+
+
+    /*@GetMapping("/owner")
     public List<BookingDto> getBookingsOneOwner(@RequestHeader(X_SHARER_USER_ID) long userId,
                                                @RequestParam (defaultValue = "All") String state) {
         log.info("");
