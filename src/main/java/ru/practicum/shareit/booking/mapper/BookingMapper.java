@@ -52,22 +52,3 @@ public class BookingMapper {
     }
 
 }
-   /* public static Item toUpdatedItem(Item updatedItem, ItemDto newItemDto) {
-        String itemDtoName = newItemDto.getName();
-        String itemDtoDescription = newItemDto.getDescription();
-        Boolean isAvailable = newItemDto.getAvailable();
-
-        if (itemDtoName != null && !itemDtoName.isEmpty()) {
-            updatedItem.setName(newItemDto.getName());
-            log.info("Имя вещи изменено на {}.", itemDtoName);
-        }
-        if (itemDtoDescription != null && !itemDtoDescription.isEmpty()) {
-            updatedItem.setDescription(newItemDto.getDescription());
-            log.info("Описание вещи изменено на {}.", itemDtoDescription);
-        }
-        if (isAvailable != null) {
-            updatedItem.setAvailable(isAvailable);
-            log.info("Статус бронирования вещи изменён на {}.", isAvailable);
-        }
-        return updatedItem;
-    }*/

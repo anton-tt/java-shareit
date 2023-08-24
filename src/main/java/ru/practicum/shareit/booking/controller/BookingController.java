@@ -40,7 +40,7 @@ public class BookingController {
                                           @PathVariable long bookingId) {
         log.info("");
         log.info("Получение данных бронирования с id = {}", bookingId);
-        return bookingService.getById(bookingId);
+        return bookingService.getById(bookingId, userId);
     }
 
     @GetMapping
@@ -51,23 +51,12 @@ public class BookingController {
         return bookingService.getBookingsOneBooker(userId, state);
     }
 
-    /*@GetMapping
-    public ResponseEntity<List<FullBookingDto>> getAllBookingsByBookerId(@RequestHeader(HEADER_USER) long bookerId,
-                                                                         @RequestParam(defaultValue = "ALL") BookingState state) {
-
-        return new ResponseEntity<>(bookingService.getAllBookingsByBookerId(bookerId, state), HttpStatus.OK);
-    }*/
-
-
-
-    /*@GetMapping("/owner")
-    public List<BookingDto> getBookingsOneOwner(@RequestHeader(X_SHARER_USER_ID) long userId,
-                                               @RequestParam (defaultValue = "All") String state) {
+    @GetMapping("/owner")
+    public List<FinalBookingDto> getBookingsOneOwner(@RequestHeader(X_SHARER_USER_ID) long userId,
+                                                     @RequestParam (defaultValue = "ALL") String state) {
         log.info("");
-        log.info("Поиск всех бронирований вещей, добавленных пользователем с id = {}", userId);
+        log.info("Поиск и сортировка бронирований для вещей, владелец которых пользователь с id = {}", userId);
         return bookingService.getBookingsOneOwner(userId, state);
     }
-
-    */
 
 }

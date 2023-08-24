@@ -23,6 +23,8 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
+import static ru.practicum.shareit.utils.Constants.TYPE_BOOKER;
+import static ru.practicum.shareit.utils.Constants.TYPE_OWNER;
 
 @Service
 @RequiredArgsConstructor
@@ -91,6 +93,11 @@ public class BookingServiceImpl implements BookingService {
     }
 
     private Booking changeBookingStatus(boolean approved, Booking initialBooking) {
+        if (!initialBooking.getStatus().equals(Status.WAITING)) {
+            throw new ValidationException("Владелец в ответ на запрос о бронировании вещи уже изменил статус бронирования." +
+                    " Повторное изменение не требуется.");
+        }
+
         Status newBookingStatus;
         if (approved) {
             newBookingStatus = Status.APPROVED;
@@ -106,12 +113,17 @@ public class BookingServiceImpl implements BookingService {
     }
 
     @Override
-    public FinalBookingDto getById(long id) {
+    public FinalBookingDto getById(long id, long userId) {
+        getUserById(userId);
         Booking booking = getBookingById(id);
         log.info("Бронирование вещи найдено в БД: {}.", booking);
-
         Item item = getItemById(booking.getItemId());
         User booker = getUserById(booking.getBookerId());
+
+        if (userId != item.getOwnerId() && userId != booker.getId()) {
+            throw new NotFoundException(String.format("Пользователь с id = %s, запросивший информацию о бронировании " +
+                    "не является ни владельцем, ни арендатором вещи! Операцию выполнить невозможно.", userId));
+        }
         FinalBookingDto bookingDto = BookingMapper.toFinalBookingDto(booking,
                 ItemMapper.toItemDto(item), UserMapper.toUserDto(booker));
         log.info("Данные бронирования вещи получены: {}.", bookingDto);
@@ -123,7 +135,7 @@ public class BookingServiceImpl implements BookingService {
     public List<FinalBookingDto> getBookingsOneBooker(long bookerId, String state) {
         User booker = getUserById(bookerId);
 
-        List<FinalBookingDto> bookingDtoList = selectBookingsByState(bookerId, state)
+        List<FinalBookingDto> bookingDtoList = selectBookingsByState(bookerId, state, TYPE_BOOKER)
             .stream()
             .map(booking -> {
                 Item item = getItemById(booking.getItemId());
@@ -136,39 +148,91 @@ public class BookingServiceImpl implements BookingService {
         return bookingDtoList;
     }
 
-    private List<Booking> selectBookingsByState(Long bookerId, String state) {
+    @Override
+    public List<FinalBookingDto> getBookingsOneOwner(long ownerId, String state) {
+        User owner = getUserById(ownerId);
+        if (itemRepository.findAllByOwnerIdEquals(ownerId).isEmpty()) {
+            throw new NotFoundException(String.format("Пользователь с id = %s, запросивший информацию о бронировании " +
+                    " своих вещей, не имеет ни одной вещи! Операцию выполнить невозможно.", ownerId));
+        }
+        List<FinalBookingDto> bookingDtoList = selectBookingsByState(ownerId, state, TYPE_OWNER)
+                .stream()
+                .map(booking -> {
+                    Item item = getItemById(booking.getItemId());
+                    User booker = getUserById(booking.getBookerId());
+                    return BookingMapper.toFinalBookingDto(booking, ItemMapper.toItemDto(item),
+                            UserMapper.toUserDto(booker));
+                })
+                .collect(Collectors.toList());
+        log.info("Сформирован список бронирований для вещей пользователя с id = {} в количестве {} в соответствии " +
+                "с поставленным запросом.", ownerId, bookingDtoList.size());
+        return bookingDtoList;
+    }
+
+    private List<Booking> selectBookingsByState(Long userId, String state, String typeOfUser) {
+        List <Booking> bookingList = new ArrayList<>();
         Sort sortByStart = Sort.by(Sort.Direction.DESC, "start");
         LocalDateTime currentMoment = LocalDateTime.now();
-        List <Booking> bookingList = new ArrayList<>();
+
+        boolean isBookerType = typeOfUser.equals(TYPE_BOOKER);
 
         try {
             switch (BookingState.valueOf(state)) {
                 case ALL:
-                    log.info("Получение из БД списка всех бронирований текущего пользователя. Категория ALL.");
-                    bookingList = bookingRepository.findAllByBookerId(bookerId, sortByStart);
+                    log.info("Получение из БД списка всех бронирований. Категория ALL.");
+                    if (isBookerType) {
+                        bookingList = bookingRepository.findAllByBookerId(userId, sortByStart);
+                    } else {
+                        bookingList = bookingRepository.allBookersByOwnerId(userId, sortByStart);
+                    }
                     break;
+
                 case CURRENT:
-                    log.info("Получение из БД списка действующих бронирований текущего пользователя. Категория CURRENT.");
-                    bookingList = bookingRepository.findAllByBookerIdAndStartBeforeAndEndAfter(bookerId, currentMoment,
-                        currentMoment, sortByStart);
+                    log.info("Получение из БД списка действующих бронирований. Категория CURRENT.");
+                    if (isBookerType) {
+                        bookingList = bookingRepository.findAllByBookerIdAndStartBeforeAndEndAfter(userId, currentMoment,
+                            currentMoment, sortByStart);
+                    } else {
+                        bookingList = bookingRepository.currentBookersByOwnerId(userId, currentMoment, sortByStart);
+                    }
                     break;
+
                 case PAST:
-                    log.info("Получение из БД списка завершённых бронирований текущего пользователя. Категория PAST.");
-                    bookingList = bookingRepository.findAllByBookerIdAndEndBefore(bookerId, currentMoment, sortByStart);
+                    log.info("Получение из БД списка завершённых бронирований. Категория PAST.");
+                    if (isBookerType) {
+                        bookingList = bookingRepository.findAllByBookerIdAndEndBefore(userId, currentMoment, sortByStart);
+                    } else {
+                        bookingList = bookingRepository.pastBookersByOwnerId(userId, currentMoment, sortByStart);
+                    }
                     break;
+
                 case FUTURE:
-                    log.info("Получение из БД списка будущих бронирований текущего пользователя. Категория FUTURE.");
-                    bookingList = bookingRepository.findAllByBookerIdAndStartAfter(bookerId, currentMoment, sortByStart);
+                    log.info("Получение из БД списка будущих бронирований. Категория FUTURE.");
+                    if (isBookerType) {
+                        bookingList = bookingRepository.findAllByBookerIdAndStartAfter(userId, currentMoment, sortByStart);
+                    } else {
+                        bookingList = bookingRepository.futureBookersByOwnerId(userId, currentMoment, sortByStart);
+                    }
                     break;
+
                 case WAITING:
-                    log.info("Получение из БД списка бронирований текущего пользователя со статусом " +
-                        "Ожидает подтверждения. Категория WAITING.");
-                    bookingList = bookingRepository.findAllByBookerIdAndStatus(bookerId, Status.WAITING, sortByStart);
+                    log.info("Получение из БД списка бронирований  со статусом Ожидает подтверждения. " +
+                                "Категория WAITING.");
+                    if (isBookerType) {
+                        bookingList = bookingRepository.findAllByBookerIdAndStatus(userId, Status.WAITING, sortByStart);
+                    } else {
+                        bookingList = bookingRepository.bookersByStatusAndOwnerId(userId, Status.WAITING, sortByStart);
+                    }
                     break;
-                case REJECTED:
+
+                    case REJECTED:
                     log.info("Получение из БД списка бронирований текущего пользователя со статусом " +
                         "Отклонённые владельцем. Категория WAITING.");
-                    bookingList = bookingRepository.findAllByBookerIdAndStatus(bookerId, Status.REJECTED, sortByStart);
+                    if (isBookerType) {
+                        bookingList = bookingRepository.findAllByBookerIdAndStatus(userId, Status.REJECTED, sortByStart);
+                    } else {
+                        bookingList = bookingRepository.bookersByStatusAndOwnerId(userId, Status.REJECTED, sortByStart);
+                    }
                     break;
             }
 
@@ -177,30 +241,6 @@ public class BookingServiceImpl implements BookingService {
         }
 
         return bookingList;
-
     }
 
-
-
-
-
-
-
-
-   /* @Override
-    public List<BookingDto> getBookingsOneOwner(long userId, String state) {
-        //userRepository.findById(userId).orElseThrow(() -> new NotFoundException(String.format("Пользователь " +
-        //        "с id = %s отсутствует в БД. Выполнить операцию невозможно!", userId)));
-        log.info("Получение списка бронирований для всех вещей текущего пользователя из БД.");
-        /*List<ItemDto> itemDtoList = itemRepository.findAll()
-                .stream()
-                .filter(item -> item.getOwnerId() == userId)
-                .map(ItemMapper::toItemDto)
-                .collect(Collectors.toList());*/
-    /*     log.info("Сформирован список бронирований для вещей пользователя с id = {} в количестве {}.", userId, state/*itemDtoList.size()*///);
-    /*    return //itemDtoList;
-    }
-
-
-*/
 }
