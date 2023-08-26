@@ -8,7 +8,8 @@ import ru.practicum.shareit.booking.mapper.BookingMapper;
 import ru.practicum.shareit.booking.model.Booking;
 import ru.practicum.shareit.booking.model.Status;
 import ru.practicum.shareit.booking.repository.BookingRepository;
-import ru.practicum.shareit.comment.dto.CommentDto;
+import ru.practicum.shareit.comment.dto.RequestCommentDto;
+import ru.practicum.shareit.comment.dto.ResponseCommentDto;
 import ru.practicum.shareit.comment.mapper.CommentMapper;
 import ru.practicum.shareit.comment.model.Comment;
 import ru.practicum.shareit.comment.repository.CommentRepository;
@@ -134,11 +135,9 @@ public class ItemServiceImpl implements ItemService {
     }
 
     @Override
-    public CommentDto createComment(long itemId, CommentDto commentDto, long userId) {
-        itemRepository.findById(itemId).orElseThrow(() -> new NotFoundException(String.format("Вещь с id = %s " +
-                "отсутствует в БД. Выполнить операцию невозможно!", itemId)));
-        User user = userRepository.findById(userId).orElseThrow(() -> new NotFoundException(String.format("Пользователь " +
-                "с id = %s отсутствует в БД. Выполнить операцию невозможно!", userId)));
+    public ResponseCommentDto createComment(long itemId, RequestCommentDto requestCommentDto, long userId) {
+        getItemById(itemId);
+        User user = getUserById(userId);
         LocalDateTime currentMoment = LocalDateTime.now();
         List<Booking> oneUserBookingsOneItem = bookingRepository.findAllByBookerIdAndStatusAndEndBefore(userId,
                         Status.APPROVED, currentMoment)
@@ -150,25 +149,25 @@ public class ItemServiceImpl implements ItemService {
                     "никогда не бронировал вещь с id = %s. Выполнить операцию невозможно!", userId, itemId));
         }
 
-        Comment dataComment = CommentMapper.toComment(itemId, commentDto, userId, currentMoment);
-        Comment comment = commentRepository.save(dataComment);
+        Comment commentData = CommentMapper.toComment(itemId, requestCommentDto, userId, currentMoment);
+        Comment comment = commentRepository.save(commentData);
         log.info("Данные комментария добавлены в БД: {}.", comment);
-        CommentDto createdCommentDto = CommentMapper.toCommentDto(comment, user);
-        log.info("Новая вещь создана: {}.", createdCommentDto);
-        return createdCommentDto;
+        ResponseCommentDto responseCommentDto = CommentMapper.toResponseCommentDto(comment, user);
+        log.info("Новая вещь создана: {}.", responseCommentDto);
+        return responseCommentDto;
 
     }
 
     private void setComments(LargeItemDto item) {
         log.info("Поиск в БД отзывов о вещи, при положительном результате добавление данных к объекту вещи.");
-        List<CommentDto> commentsList =  commentRepository.findByItemId(item.getId())
+        List<ResponseCommentDto> responseCommentDtoList =  commentRepository.findByItemId(item.getId())
                 .stream()
                 .map(comment -> {
                     User author = getUserById(comment.getAuthorId());
-                    return CommentMapper.toCommentDto(comment, author); }
+                    return CommentMapper.toResponseCommentDto(comment, author); }
                 )
                 .collect(Collectors.toList());
-        item.setComments(commentsList);
+        item.setComments(responseCommentDtoList);
     }
 
     private LargeItemDto setLastAndNextBookings(LargeItemDto itemDto, LocalDateTime currentMoment) {
