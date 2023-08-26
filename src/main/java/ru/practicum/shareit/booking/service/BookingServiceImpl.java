@@ -170,7 +170,7 @@ public class BookingServiceImpl implements BookingService {
     }
 
     private List<Booking> selectBookingsByState(Long userId, String state, String typeOfUser) {
-        List <Booking> bookingList = new ArrayList<>();
+        List<Booking> bookingList = new ArrayList<>();
         Sort sortByStart = Sort.by(Sort.Direction.DESC, "start");
         LocalDateTime currentMoment = LocalDateTime.now();
 
