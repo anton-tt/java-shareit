@@ -3,6 +3,7 @@ package ru.practicum.shareit.booking.mapper;
 import lombok.extern.slf4j.Slf4j;
 import ru.practicum.shareit.booking.dto.FinalBookingDto;
 import ru.practicum.shareit.booking.dto.InitialBookingDto;
+import ru.practicum.shareit.booking.dto.ItemBookingDto;
 import ru.practicum.shareit.booking.model.Booking;
 import ru.practicum.shareit.booking.model.Status;
 import ru.practicum.shareit.exception.ValidationException;
@@ -18,7 +19,7 @@ public class BookingMapper {
     }
 
     public static Booking toInitialBooking(InitialBookingDto initialBooking, long userId) {
-        LocalDateTime currentDateTime = LocalDateTime.now().withNano(0);
+        LocalDateTime currentDateTime = LocalDateTime.now();
         LocalDateTime startBooking = initialBooking.getStart();
         LocalDateTime endBooking = initialBooking.getEnd();
 
@@ -48,6 +49,17 @@ public class BookingMapper {
                 .status(booking.getStatus())
                 .item(itemDto)
                 .booker(bookerDto)
+                .build();
+    }
+
+    public static ItemBookingDto toItemBookingDto(Booking booking) {
+        return ItemBookingDto.builder()
+                .id(booking.getId())
+                .start(booking.getStart())
+                .end(booking.getEnd())
+                .status(booking.getStatus())
+                .itemId(booking.getItemId())
+                .bookerId(booking.getBookerId())
                 .build();
     }
 

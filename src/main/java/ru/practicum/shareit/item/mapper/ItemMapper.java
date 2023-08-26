@@ -3,6 +3,7 @@ package ru.practicum.shareit.item.mapper;
 import lombok.extern.slf4j.Slf4j;
 import ru.practicum.shareit.exception.ValidationException;
 import ru.practicum.shareit.item.dto.ItemDto;
+import ru.practicum.shareit.item.dto.LargeItemDto;
 import ru.practicum.shareit.item.model.Item;
 
 @Slf4j
@@ -43,7 +44,16 @@ public class ItemMapper {
                     .requestId(itemDto.getRequestId() != null ? itemDto.getRequestId() : null)
                     .build();
         }
+    }
 
+    public static LargeItemDto toLargeItemDto(Item item) {
+        return LargeItemDto.builder()
+            .id(item.getId())
+            .name(item.getName())
+            .description(item.getDescription())
+            .available(item.isAvailable())
+            .requestId(item.getRequestId() != null ? item.getRequestId() : null)
+            .build();
     }
 
     public static Item toUpdatedItem(Item updatedItem, ItemDto newItemDto) {

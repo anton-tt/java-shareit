@@ -1,11 +1,17 @@
 package ru.practicum.shareit.comment.model;
 
-import lombok.Data;
+import lombok.*;
 import javax.persistence.*;
 import javax.validation.constraints.NotBlank;
 import java.time.LocalDateTime;
 
-@Data
+@Getter
+@Setter
+@ToString
+@EqualsAndHashCode
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
 @Entity
 @Table(name = "comments", schema = "public")
 public class Comment {

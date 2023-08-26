@@ -2,8 +2,8 @@ package ru.practicum.shareit.comment.dto;
 
 import lombok.Builder;
 import lombok.Data;
-import lombok.NonNull;
 import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Positive;
 import java.time.LocalDateTime;
 
@@ -13,14 +13,12 @@ public class CommentDto {
 
     @Positive
     private long id;
-    @NonNull
     @NotBlank
     private String text;
-    @NonNull
+    @NotNull
     private LocalDateTime created;
-    @NonNull
+    @NotNull
     private Long itemId;
-    @NonNull
-    private Long authorId;
+    private String authorName;
 
 }

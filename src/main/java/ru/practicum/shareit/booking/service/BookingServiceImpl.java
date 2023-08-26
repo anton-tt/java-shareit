@@ -59,7 +59,7 @@ public class BookingServiceImpl implements BookingService {
             throw new ValidationException(String.format("Вещь, которую хочет забронировать пользователь с id = %s," +
                     "в данный момент недоступна. Выполнить операцию невозможно!", userId));
         } else if (item.getOwnerId() == userId) {
-            throw new ValidationException(String.format("Пользователь с id = %s, который хочет забронировать вещь " +
+            throw new NotFoundException(String.format("Пользователь с id = %s, который хочет забронировать вещь " +
                     "является её владельцем. Выполнить операцию невозможно!", userId));
         } else {
             Booking initialBooking = BookingMapper.toInitialBooking(initialBookingDto, userId);
@@ -151,7 +151,7 @@ public class BookingServiceImpl implements BookingService {
     @Override
     public List<FinalBookingDto> getBookingsOneOwner(long ownerId, String state) {
         User owner = getUserById(ownerId);
-        if (itemRepository.findAllByOwnerIdEquals(ownerId).isEmpty()) {
+        if (itemRepository.findAllByOwnerId(ownerId).isEmpty()) {
             throw new NotFoundException(String.format("Пользователь с id = %s, запросивший информацию о бронировании " +
                     " своих вещей, не имеет ни одной вещи! Операцию выполнить невозможно.", ownerId));
         }
