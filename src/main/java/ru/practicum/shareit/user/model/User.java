@@ -19,10 +19,10 @@ public class User {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
-    @Column(name="name", nullable = false)
+    @Column(name = "name", nullable = false)
     @NotBlank
     private String name;
-    @Column(name="email", nullable=false, unique=true)
+    @Column(name = "email", nullable=false, unique=true)
     @Email
     private String email;
 
