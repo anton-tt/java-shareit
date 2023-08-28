@@ -22,12 +22,12 @@ public class CommentMapper {
                 .build();
     }
 
-    public ResponseCommentDto toResponseCommentDto(Comment comment, User author) {
+    public ResponseCommentDto toResponseCommentDto(Comment comment) {
         return ResponseCommentDto.builder()
                 .id(comment.getId())
                 .text(comment.getText())
                 .created(comment.getCreated())
-                .authorName(author.getName())
+                .authorName(comment.getAuthor().getName())
                 .build();
     }
 

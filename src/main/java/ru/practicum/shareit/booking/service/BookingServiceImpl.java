@@ -232,7 +232,7 @@ public class BookingServiceImpl implements BookingService {
                     }
                     break;
 
-                    case REJECTED:
+                case REJECTED:
                     log.info("Получение из БД списка бронирований текущего пользователя со статусом " +
                         "Отклонённые владельцем. Категория WAITING.");
                     if (isBookerType) {
@@ -243,7 +243,7 @@ public class BookingServiceImpl implements BookingService {
                     break;
             }
 
-        } catch (Exception e) {
+        } catch (IllegalArgumentException e) {
             throw new ValidationException(String.format("Unknown state: %s", state));
         }
 

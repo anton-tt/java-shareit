@@ -2,6 +2,7 @@ package ru.practicum.shareit.item.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import ru.practicum.shareit.booking.dto.ItemBookingDto;
 import ru.practicum.shareit.booking.mapper.BookingMapper;
@@ -26,7 +27,10 @@ import ru.practicum.shareit.user.repository.UserRepository;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
+import java.util.Map;
+import static java.util.stream.Collectors.groupingBy;
+import static java.util.stream.Collectors.toList;
+import static org.springframework.data.domain.Sort.Direction.DESC;
 
 @Service
 @RequiredArgsConstructor
@@ -63,9 +67,11 @@ public class ItemServiceImpl implements ItemService {
     public FullResponseItemDto getById(long id, long ownerId) {
         Item item = getItemById(id);
         log.info("Вещь найдена в БД: {}.", item);
-        FullResponseItemDto itemDto = ItemMapper.toFullResponseItemDto(item);
 
-        setComments(itemDto);
+        List<Comment> oneItemComments =  commentRepository.findByItemId(item.getId());
+        FullResponseItemDto itemDto = ItemMapper.toFullResponseItemDto(item);
+        setComments(itemDto, oneItemComments);
+
         if (item.getOwner().getId() == ownerId) {
             setLastAndNextBookings(itemDto, LocalDateTime.now());
         }
@@ -79,14 +85,37 @@ public class ItemServiceImpl implements ItemService {
         getUserById(userId);
         log.info("Получение данных всех вещей пользователя из БД.");
         LocalDateTime currentMoment = LocalDateTime.now();
-        List<FullResponseItemDto> itemDtoList = itemRepository.findAll()
+
+        List<Item> itemList = itemRepository.findAll()
                 .stream()
                 .filter(item -> item.getOwner().getId() == userId)
-                .map(ItemMapper::toFullResponseItemDto)
-                .map(itemDto -> setLastAndNextBookings(itemDto, currentMoment))
-                .collect(Collectors.toList());
-        log.info("Сформирован список всех вещей пользователя с id = {} в количестве {}.", userId, itemDtoList.size());
-        return itemDtoList;
+                .collect(toList());
+
+        Map<Item, List<Comment>> allComments = commentRepository.findAll(Sort.by(DESC, "created"))
+                .stream()
+                .collect(groupingBy(Comment::getItem, toList()));
+
+        return itemList
+                .stream()
+                .map(item -> {
+                    FullResponseItemDto itemDto = ItemMapper.toFullResponseItemDto(item);
+                    setComments(itemDto, allComments.get(item));
+                    return setLastAndNextBookings(itemDto, currentMoment);
+                })
+                .collect(toList());
+
+    }
+
+    private FullResponseItemDto setComments(FullResponseItemDto itemDto, List<Comment> oneItemComments) {
+
+        if (oneItemComments != null) {
+            List<ResponseCommentDto> comments = oneItemComments
+                    .stream()
+                    .map(CommentMapper::toResponseCommentDto)
+                    .collect(toList());
+            itemDto.setComments(comments);
+        }
+        return itemDto;
     }
 
     @Override
@@ -128,7 +157,7 @@ public class ItemServiceImpl implements ItemService {
                     .stream()
                     .filter(Item::isAvailable)
                     .map(ItemMapper::toResponseItemDto)
-                    .collect(Collectors.toList());
+                    .collect(toList());
         }
         log.info("Сформирован список всех доступных для аренды вещей в количестве {} штук" +
                 " по запросу: {}.", itemDtoList.size(), text);
@@ -144,7 +173,7 @@ public class ItemServiceImpl implements ItemService {
                         Status.APPROVED, currentMoment)
                 .stream()
                 .filter(booking -> booking.getItem().getId() == itemId)
-                .collect(Collectors.toList());
+                .collect(toList());
         if (oneUserBookingsOneItem.isEmpty()) {
             throw new ValidationException(String.format("Пользователь с id = %s, который хочет добавить комментарий, " +
                     "никогда не бронировал вещь с id = %s. Выполнить операцию невозможно!", userId, itemId));
@@ -153,22 +182,10 @@ public class ItemServiceImpl implements ItemService {
         Comment commentData = CommentMapper.toComment(item, requestCommentDto, user, currentMoment);
         Comment comment = commentRepository.save(commentData);
         log.info("Данные комментария добавлены в БД: {}.", comment);
-        ResponseCommentDto responseCommentDto = CommentMapper.toResponseCommentDto(comment, user);
+        ResponseCommentDto responseCommentDto = CommentMapper.toResponseCommentDto(comment);
         log.info("Новая вещь создана: {}.", responseCommentDto);
         return responseCommentDto;
 
-    }
-
-    private void setComments(FullResponseItemDto item) {
-        log.info("Поиск в БД отзывов о вещи, при положительном результате добавление данных к объекту вещи.");
-        List<ResponseCommentDto> responseCommentDtoList =  commentRepository.findByItemId(item.getId())
-                .stream()
-                .map(comment -> {
-                    User author = getUserById(comment.getAuthor().getId());
-                    return CommentMapper.toResponseCommentDto(comment, author); }
-                )
-                .collect(Collectors.toList());
-        item.setComments(responseCommentDtoList);
     }
 
     private FullResponseItemDto setLastAndNextBookings(FullResponseItemDto itemDto, LocalDateTime currentMoment) {
