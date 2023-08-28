@@ -1,6 +1,8 @@
 package ru.practicum.shareit.booking.model;
 
 import lombok.*;
+import ru.practicum.shareit.item.model.Item;
+import ru.practicum.shareit.user.model.User;
 import javax.persistence.*;
 import javax.validation.constraints.Future;
 import java.time.LocalDateTime;
@@ -8,7 +10,6 @@ import java.time.LocalDateTime;
 @Getter
 @Setter
 @ToString
-@EqualsAndHashCode
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
@@ -19,18 +20,27 @@ public class Booking {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
+
     @Column(name = "start_date", nullable = false)
     @Future
     private LocalDateTime start;
+
     @Column(name = "end_date", nullable = false)
     @Future
     private LocalDateTime end;
+
     @Column(name = "status", nullable = false)
     @Enumerated(EnumType.STRING)
     private Status status;
-    @Column(name = "item_id", nullable = false)
-    private long itemId;
-    @Column(name = "booker_id", nullable = false)
-    private long bookerId;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "item_id", nullable = false)
+    @ToString.Exclude
+    private Item item;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "booker_id", nullable = false)
+    @ToString.Exclude
+    private User booker;
 
 }

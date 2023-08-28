@@ -1,66 +1,50 @@
 package ru.practicum.shareit.user.mapper;
 
+import lombok.experimental.UtilityClass;
 import lombok.extern.slf4j.Slf4j;
-import ru.practicum.shareit.exception.ValidationException;
-import ru.practicum.shareit.user.dto.UserDto;
+import ru.practicum.shareit.user.dto.RequestUserDto;
+import ru.practicum.shareit.user.dto.ResponseUserDto;
 import ru.practicum.shareit.user.model.User;
 
+@UtilityClass
 @Slf4j
 public class UserMapper {
 
-    private UserMapper() {
-
+    public User toUser(RequestUserDto userDto) {
+        return User.builder()
+                .name(userDto.getName())
+                .email(userDto.getEmail())
+                .build();
     }
 
-    public static UserDto toUserDto(User user) {
-        return UserDto.builder()
+    public ResponseUserDto toResponseUserDto(User user) {
+        return ResponseUserDto.builder()
                 .id(user.getId())
                 .name(user.getName())
                 .email(user.getEmail())
                 .build();
     }
 
-    public static User toUser(UserDto userDto) {
-        String userDtoName = userDto.getName();
-        String userDtoMail = userDto.getEmail();
-
-        if (userDtoName == null || userDtoName.isEmpty()) {
-            throw new ValidationException("У пользователя отсутствует имя! Операцию выполнить невозможно.");
-        } else if (userDtoMail == null || !userDtoMail.contains("@")) {
-            throw new ValidationException("У пользователя электронная почта отсутствует или не соответствует " +
-                    "правильному формату! Операцию выполнить невозможно.");
-        } else {
-            return User.builder()
-                    .id(userDto.getId())
-                    .name(userDto.getName())
-                    .email(userDto.getEmail())
-                    .build();
-        }
-    }
-
-    public static User toUpdatedUser(User updatedUser, UserDto userDto) {
-        String updatedUserEmail = updatedUser.getEmail();
+    public User toUpdatedUser(User user, RequestUserDto userDto) {
+        String userEmail = user.getEmail();
         String userDtoName = userDto.getName();
         String userDtoEmail = userDto.getEmail();
 
         if (userDtoName != null) {
-            updatedUser.setName(userDtoName);
+            user.setName(userDtoName);
             log.info("Имя пользователя изменено на {}.", userDtoName);
         }
 
         if (userDtoEmail != null) {
-            if (!userDtoEmail.contains("@")) {
-                throw new ValidationException(String.format("У пользователя некорректный новый адрес " +
-                        "электронной почты: %s. Обновить данные невозможно!", userDtoEmail));
-            } else if (updatedUserEmail.equals(userDtoEmail)) {
+            if (userEmail.equals(userDtoEmail)) {
                 log.info("Адрес новой электронной почты и адрес старой одинаковые: {}. " +
                         "Обновление данных не требуется.", userDtoEmail);
             } else {
-                updatedUser.setEmail(userDtoEmail);
+                user.setEmail(userDtoEmail);
                 log.info("Эл.почта пользователя изменена на {}.", userDtoEmail);
             }
         }
-        return updatedUser;
+        return user;
     }
 
 }

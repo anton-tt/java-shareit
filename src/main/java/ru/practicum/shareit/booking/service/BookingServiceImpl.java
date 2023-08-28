@@ -4,8 +4,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
-import ru.practicum.shareit.booking.dto.FinalBookingDto;
-import ru.practicum.shareit.booking.dto.InitialBookingDto;
+import ru.practicum.shareit.booking.dto.RequestBookingDto;
+import ru.practicum.shareit.booking.dto.ResponseBookingDto;
 import ru.practicum.shareit.booking.mapper.BookingMapper;
 import ru.practicum.shareit.booking.model.Booking;
 import ru.practicum.shareit.booking.model.BookingState;
@@ -51,51 +51,58 @@ public class BookingServiceImpl implements BookingService {
     }
 
     @Override
-    public FinalBookingDto create(InitialBookingDto initialBookingDto, long userId) {
+    public ResponseBookingDto create(RequestBookingDto requestBookingDto, long userId) {
         User booker = getUserById(userId);
-        Item item = getItemById(initialBookingDto.getItemId());
+        Item item = getItemById(requestBookingDto.getItemId());
+        LocalDateTime startRequestBookingDto = requestBookingDto.getStart();
+        LocalDateTime endRequestBookingDto = requestBookingDto.getEnd();
 
-        if (!item.isAvailable()) {
+         if (!item.isAvailable()) {
             throw new ValidationException(String.format("Вещь, которую хочет забронировать пользователь с id = %s," +
                     "в данный момент недоступна. Выполнить операцию невозможно!", userId));
-        } else if (item.getOwnerId() == userId) {
+        } else if (item.getOwner().getId() == userId) {
             throw new NotFoundException(String.format("Пользователь с id = %s, который хочет забронировать вещь " +
                     "является её владельцем. Выполнить операцию невозможно!", userId));
+        } else if (startRequestBookingDto.isAfter(endRequestBookingDto)
+                 || startRequestBookingDto.equals(endRequestBookingDto)) {
+             throw new ValidationException(String.format("Дата начала бронирования %s позже или совпадает с датой его" +
+                     " окончания %s! Выполнить операцию невозможно!", startRequestBookingDto, endRequestBookingDto));
         } else {
-            Booking initialBooking = BookingMapper.toInitialBooking(initialBookingDto, userId);
-            Booking booking = bookingRepository.save(initialBooking);
+            Booking bookingData = BookingMapper.toBooking(requestBookingDto, item, booker);
+            Booking booking = bookingRepository.save(bookingData);
             log.info("Данные бронирования вещи добавлены в БД: {}.", booking);
 
-            FinalBookingDto bookingDto =
-                    BookingMapper.toFinalBookingDto(booking, ItemMapper.toItemDto(item), UserMapper.toUserDto(booker));
+            ResponseBookingDto bookingDto =
+                    BookingMapper.toResponseBookingDto(booking, ItemMapper.toResponseItemDto(item),
+                            UserMapper.toResponseUserDto(booker));
             log.info("Новое бронирование вещи создано: {}.", bookingDto);
             return bookingDto;
         }
     }
 
     @Override
-    public FinalBookingDto approve(long id, boolean approved, long userId) {
+    public ResponseBookingDto approve(long id, boolean approved, long userId) {
         getUserById(userId);
-        Booking initialBooking = getBookingById(id);
-        Item item = getItemById(initialBooking.getItemId());
+        Booking bookingData = getBookingById(id);
+        Item item = getItemById(bookingData.getItem().getId());
 
-        if (item.getOwnerId() != userId) {
+        if (item.getOwner().getId() != userId) {
             throw new NotFoundException(String.format("Пользователь с id = %s не является владельцем вещи с id = %s!" +
                     "Изменить статус бронирования этой вещи невозможно.", userId, item.getId()));
         }
-        Booking booking = changeBookingStatus(approved, initialBooking);
+        Booking booking = changeBookingStatus(approved, bookingData);
 
-        User booker = getUserById(booking.getBookerId());
-        FinalBookingDto bookingDto = BookingMapper.toFinalBookingDto(booking,
-                ItemMapper.toItemDto(item), UserMapper.toUserDto(booker));
+        User booker = getUserById(booking.getBooker().getId());
+        ResponseBookingDto bookingDto = BookingMapper.toResponseBookingDto(booking,
+                ItemMapper.toResponseItemDto(item), UserMapper.toResponseUserDto(booker));
         log.info("Статус бронирования изменён хозяином вещи: {}.", bookingDto);
         return bookingDto;
     }
 
-    private Booking changeBookingStatus(boolean approved, Booking initialBooking) {
-        if (!initialBooking.getStatus().equals(Status.WAITING)) {
-            throw new ValidationException("Владелец в ответ на запрос о бронировании вещи уже изменил статус бронирования." +
-                    " Повторное изменение не требуется.");
+    private Booking changeBookingStatus(boolean approved, Booking bookingData) {
+        if (!bookingData.getStatus().equals(Status.WAITING)) {
+            throw new ValidationException("Владелец в ответ на запрос о бронировании вещи уже изменил статус " +
+                    "бронирования. Повторное изменение не требуется.");
         }
 
         Status newBookingStatus;
@@ -106,41 +113,41 @@ public class BookingServiceImpl implements BookingService {
         }
         log.info("Новый статус бронирования: {}.", newBookingStatus);
 
-        initialBooking.setStatus(newBookingStatus);
-        Booking booking = bookingRepository.save(initialBooking);
+        bookingData.setStatus(newBookingStatus);
+        Booking booking = bookingRepository.save(bookingData);
         log.info("Статус бронирования вещи изменён в БД: {}.", booking);
         return booking;
     }
 
     @Override
-    public FinalBookingDto getById(long id, long userId) {
+    public ResponseBookingDto getById(long id, long userId) {
         getUserById(userId);
         Booking booking = getBookingById(id);
         log.info("Бронирование вещи найдено в БД: {}.", booking);
-        Item item = getItemById(booking.getItemId());
-        User booker = getUserById(booking.getBookerId());
+        Item item = getItemById(booking.getItem().getId());
+        User booker = getUserById(booking.getBooker().getId());
 
-        if (userId != item.getOwnerId() && userId != booker.getId()) {
+        if (userId != item.getOwner().getId() && userId != booker.getId()) {
             throw new NotFoundException(String.format("Пользователь с id = %s, запросивший информацию о бронировании " +
                     "не является ни владельцем, ни арендатором вещи! Операцию выполнить невозможно.", userId));
         }
-        FinalBookingDto bookingDto = BookingMapper.toFinalBookingDto(booking,
-                ItemMapper.toItemDto(item), UserMapper.toUserDto(booker));
+        ResponseBookingDto bookingDto = BookingMapper.toResponseBookingDto(booking,
+                ItemMapper.toResponseItemDto(item), UserMapper.toResponseUserDto(booker));
         log.info("Данные бронирования вещи получены: {}.", bookingDto);
         return bookingDto;
     }
 
 
     @Override
-    public List<FinalBookingDto> getBookingsOneBooker(long bookerId, String state) {
+    public List<ResponseBookingDto> getBookingsOneBooker(long bookerId, String state) {
         User booker = getUserById(bookerId);
 
-        List<FinalBookingDto> bookingDtoList = selectBookingsByState(bookerId, state, TYPE_BOOKER)
+        List<ResponseBookingDto> bookingDtoList = selectBookingsByState(bookerId, state, TYPE_BOOKER)
             .stream()
             .map(booking -> {
-                Item item = getItemById(booking.getItemId());
-                return BookingMapper.toFinalBookingDto(booking, ItemMapper.toItemDto(item),
-                        UserMapper.toUserDto(booker));
+                Item item = getItemById(booking.getItem().getId());
+                return BookingMapper.toResponseBookingDto(booking, ItemMapper.toResponseItemDto(item),
+                        UserMapper.toResponseUserDto(booker));
                 })
             .collect(Collectors.toList());
         log.info("Сформирован список бронирований пользователя с id = {} в количестве {} в соответствии " +
@@ -149,19 +156,19 @@ public class BookingServiceImpl implements BookingService {
     }
 
     @Override
-    public List<FinalBookingDto> getBookingsOneOwner(long ownerId, String state) {
-        User owner = getUserById(ownerId);
+    public List<ResponseBookingDto> getBookingsOneOwner(long ownerId, String state) {
+        getUserById(ownerId);
         if (itemRepository.findAllByOwnerId(ownerId).isEmpty()) {
             throw new NotFoundException(String.format("Пользователь с id = %s, запросивший информацию о бронировании " +
                     " своих вещей, не имеет ни одной вещи! Операцию выполнить невозможно.", ownerId));
         }
-        List<FinalBookingDto> bookingDtoList = selectBookingsByState(ownerId, state, TYPE_OWNER)
+        List<ResponseBookingDto> bookingDtoList = selectBookingsByState(ownerId, state, TYPE_OWNER)
                 .stream()
                 .map(booking -> {
-                    Item item = getItemById(booking.getItemId());
-                    User booker = getUserById(booking.getBookerId());
-                    return BookingMapper.toFinalBookingDto(booking, ItemMapper.toItemDto(item),
-                            UserMapper.toUserDto(booker));
+                    Item item = getItemById(booking.getItem().getId());
+                    User booker = getUserById(booking.getBooker().getId());
+                    return BookingMapper.toResponseBookingDto(booking, ItemMapper.toResponseItemDto(item),
+                            UserMapper.toResponseUserDto(booker));
                 })
                 .collect(Collectors.toList());
         log.info("Сформирован список бронирований для вещей пользователя с id = {} в количестве {} в соответствии " +

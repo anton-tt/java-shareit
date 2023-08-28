@@ -12,8 +12,8 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
 
     String queryBasis = "SELECT b " +
             "FROM Booking b " +
-            "JOIN Item i ON (i.id = b.itemId) " +
-            "JOIN User u ON (u.id = i.ownerId) ";
+            "JOIN Item i ON (i.id = b.item.id) " +
+            "JOIN User u ON (u.id = i.owner.id) ";
 
     List<Booking> findAllByBookerId(Long bookerId, Sort sortByStart);
 
@@ -27,23 +27,23 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
     List<Booking> findAllByBookerIdAndStatus(long bookerId, Status status, Sort sortByStart);
 
     @Query(queryBasis +
-           "WHERE i.ownerId = ?1")
+           "WHERE i.owner.id = ?1")
     List<Booking> allBookersByOwnerId(long ownerId, Sort sortByStart);
 
     @Query(queryBasis +
-            "WHERE i.ownerId = ?1 AND b.start < ?2 AND b.end > ?2")
+            "WHERE i.owner.id = ?1 AND b.start < ?2 AND b.end > ?2")
     List<Booking> currentBookersByOwnerId(Long bookerId, LocalDateTime currentMoment, Sort sortByStart);
 
     @Query(queryBasis +
-            "WHERE i.ownerId = ?1 AND b.end < ?2")
+            "WHERE i.owner.id = ?1 AND b.end < ?2")
     List<Booking> pastBookersByOwnerId(Long bookerId, LocalDateTime currentMoment, Sort sortByStart);
 
     @Query(queryBasis +
-            "WHERE i.ownerId = ?1 AND b.start > ?2")
+            "WHERE i.owner.id = ?1 AND b.start > ?2")
     List<Booking> futureBookersByOwnerId(Long bookerId, LocalDateTime currentMoment, Sort sortByStart);
 
     @Query(queryBasis +
-            "WHERE i.ownerId = ?1 AND b.status = ?2")
+            "WHERE i.owner.id = ?1 AND b.status = ?2")
     List<Booking> bookersByStatusAndOwnerId(Long bookerId, Status status, Sort sortByStart);
 
     List<Booking> findAllByBookerIdAndStatusAndEndBefore(Long bookerId, Status status, LocalDateTime currentMoment);

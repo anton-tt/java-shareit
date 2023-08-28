@@ -2,12 +2,17 @@ package ru.practicum.shareit.item.controller;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.shareit.comment.dto.RequestCommentDto;
 import ru.practicum.shareit.comment.dto.ResponseCommentDto;
-import ru.practicum.shareit.item.dto.ItemDto;
-import ru.practicum.shareit.item.dto.LargeItemDto;
+import ru.practicum.shareit.item.dto.FullResponseItemDto;
+import ru.practicum.shareit.item.dto.RequestItemDto;
+import ru.practicum.shareit.item.dto.ResponseItemDto;
 import ru.practicum.shareit.item.service.ItemService;
+import ru.practicum.shareit.utils.groups.Create;
+import ru.practicum.shareit.utils.groups.Update;
+import javax.validation.Valid;
 import java.util.List;
 import static ru.practicum.shareit.utils.Constants.X_SHARER_USER_ID;
 
@@ -20,32 +25,32 @@ public class ItemController {
     private final ItemService itemService;
 
     @PostMapping
-    public ItemDto createItem(@RequestHeader(X_SHARER_USER_ID) long userId,
-                              @RequestBody ItemDto item) {
+    public ResponseItemDto createItem(@RequestHeader(X_SHARER_USER_ID) long userId,
+                                      @RequestBody @Validated(Create.class) RequestItemDto item) {
         log.info("");
         log.info("Добавление новой вещи: {}", item);
         return itemService.create(item, userId);
     }
 
     @GetMapping("/{id}")
-    public LargeItemDto getItemById(@RequestHeader(X_SHARER_USER_ID) long userId,
-                               @PathVariable long id) {
+    public FullResponseItemDto getItemById(@RequestHeader(X_SHARER_USER_ID) long userId,
+                                           @PathVariable long id) {
         log.info("");
         log.info("Получение данных вещи с id = {}", id);
         return itemService.getById(id, userId);
     }
 
     @GetMapping
-    public List<LargeItemDto> getItemsOneUser(@RequestHeader(X_SHARER_USER_ID) long userId) {
+    public List<FullResponseItemDto> getItemsOneUser(@RequestHeader(X_SHARER_USER_ID) long userId) {
         log.info("");
         log.info("Поиск всех вещей, созданных пользователем с id = {}", userId);
         return itemService.getItemsOneOwner(userId);
     }
 
     @PatchMapping("/{id}")
-    public ItemDto updateItem(@RequestHeader(X_SHARER_USER_ID) long userId,
-                              @PathVariable long id,
-                              @RequestBody ItemDto item) {
+    public ResponseItemDto updateItem(@RequestHeader(X_SHARER_USER_ID) long userId,
+                                      @PathVariable long id,
+                                      @RequestBody  @Validated(Update.class) RequestItemDto item) {
         log.info("");
         log.info("Обновление данных вещи с id = {}: {}", id, item);
         return itemService.update(id, item, userId);
@@ -60,8 +65,8 @@ public class ItemController {
     }
 
     @GetMapping("/search")
-    public List<ItemDto> searchItems(@RequestHeader(X_SHARER_USER_ID) long userId,
-                                     @RequestParam String text) {
+    public List<ResponseItemDto> searchItems(@RequestHeader(X_SHARER_USER_ID) long userId,
+                                             @RequestParam String text) {
         log.info("");
         log.info("Поиск вещей по определённому запросу пользователя");
         return itemService.search(text);
@@ -70,7 +75,7 @@ public class ItemController {
     @PostMapping("/{itemId}/comment")
     public ResponseCommentDto createComment(@RequestHeader(X_SHARER_USER_ID) long userId,
                                             @PathVariable long itemId,
-                                            @RequestBody RequestCommentDto comment) {
+                                            @RequestBody @Valid RequestCommentDto comment) {
         log.info("");
         log.info("Добавление для вещи с id = {} нового комментария: {}", itemId, comment);
         return itemService.createComment(itemId, comment, userId);
