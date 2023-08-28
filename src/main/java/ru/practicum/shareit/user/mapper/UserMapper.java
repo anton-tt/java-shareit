@@ -30,12 +30,12 @@ public class UserMapper {
         String userDtoName = userDto.getName();
         String userDtoEmail = userDto.getEmail();
 
-        if (userDtoName != null) {
+        if (userDtoName != null && !userDtoName.isBlank()) {
             user.setName(userDtoName);
             log.info("Имя пользователя изменено на {}.", userDtoName);
         }
 
-        if (userDtoEmail != null) {
+        if (userDtoEmail != null && !userDtoEmail.isBlank()) {
             if (userEmail.equals(userDtoEmail)) {
                 log.info("Адрес новой электронной почты и адрес старой одинаковые: {}. " +
                         "Обновление данных не требуется.", userDtoEmail);

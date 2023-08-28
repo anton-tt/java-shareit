@@ -1,7 +1,6 @@
 package ru.practicum.shareit.comment.mapper;
 
 import lombok.experimental.UtilityClass;
-import lombok.extern.slf4j.Slf4j;
 import ru.practicum.shareit.comment.dto.RequestCommentDto;
 import ru.practicum.shareit.comment.dto.ResponseCommentDto;
 import ru.practicum.shareit.comment.model.Comment;
@@ -10,7 +9,6 @@ import ru.practicum.shareit.user.model.User;
 import java.time.LocalDateTime;
 
 @UtilityClass
-@Slf4j
 public class CommentMapper {
 
     public Comment toComment(Item item, RequestCommentDto commentDto, User user, LocalDateTime currentMoment) {

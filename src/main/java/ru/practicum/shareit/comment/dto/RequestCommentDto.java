@@ -9,7 +9,7 @@ import javax.validation.constraints.Size;
 @Data
 public class RequestCommentDto {
 
-    long id;
+    private long id;
 
     @NotBlank
     @Size(max = 500)
