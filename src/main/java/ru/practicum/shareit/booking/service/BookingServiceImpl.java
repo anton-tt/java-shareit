@@ -138,15 +138,14 @@ public class BookingServiceImpl implements BookingService {
 
         List<ResponseBookingDto> bookingDtoList = selectBookingsByState(bookerId, state, TYPE_BOOKER)
             .stream()
-            .map(booking -> {
-                Item item = getItemById(booking.getItem().getId());
-                return BookingMapper.toResponseBookingDto(booking, ItemMapper.toResponseItemDto(item),
-                        UserMapper.toResponseUserDto(booker));
-                })
+            .map(booking -> BookingMapper.toResponseBookingDto(booking,
+                    ItemMapper.toResponseItemDto(booking.getItem()),
+                    UserMapper.toResponseUserDto(booker)))
             .collect(Collectors.toList());
         log.info("Сформирован список бронирований пользователя с id = {} в количестве {} в соответствии " +
                         "с поставленным запросом.", bookerId, bookingDtoList.size());
         return bookingDtoList;
+
     }
 
     @Override
@@ -158,12 +157,9 @@ public class BookingServiceImpl implements BookingService {
         }
         List<ResponseBookingDto> bookingDtoList = selectBookingsByState(ownerId, state, TYPE_OWNER)
                 .stream()
-                .map(booking -> {
-                    Item item = getItemById(booking.getItem().getId());
-                    User booker = getUserById(booking.getBooker().getId());
-                    return BookingMapper.toResponseBookingDto(booking, ItemMapper.toResponseItemDto(item),
-                            UserMapper.toResponseUserDto(booker));
-                })
+                .map(booking -> BookingMapper.toResponseBookingDto(booking,
+                        ItemMapper.toResponseItemDto(booking.getItem()),
+                        UserMapper.toResponseUserDto(booking.getBooker())))
                 .collect(Collectors.toList());
         log.info("Сформирован список бронирований для вещей пользователя с id = {} в количестве {} в соответствии " +
                 "с поставленным запросом.", ownerId, bookingDtoList.size());

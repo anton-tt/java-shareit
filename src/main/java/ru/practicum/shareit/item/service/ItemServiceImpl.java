@@ -30,6 +30,7 @@ import java.util.List;
 import java.util.Map;
 import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.toList;
+import static org.springframework.data.domain.Sort.Direction.ASC;
 import static org.springframework.data.domain.Sort.Direction.DESC;
 
 @Service
@@ -69,14 +70,18 @@ public class ItemServiceImpl implements ItemService {
         log.info("Вещь найдена в БД: {}.", item);
 
         List<Comment> oneItemComments =  commentRepository.findByItemId(item.getId());
-        List<Booking> oneItemBooking =  bookingRepository.findByItemId(item.getId());
+        List<Booking> oneItemBooking =  bookingRepository.findByItemId(item.getId(), Sort.by(ASC, "start"));
         FullResponseItemDto itemDto = ItemMapper.toFullResponseItemDto(item);
         setComments(itemDto, oneItemComments);
 
-        if (item.getOwner().getId() == ownerId) {
-            setLastAndNextBookings(itemDto, oneItemBooking, LocalDateTime.now());
-        }
+        if ((item.getOwner().getId() == ownerId) && (oneItemBooking != null)) {
+            List<Booking> oneItemBookingByStatus = oneItemBooking
+                    .stream()
+                    .filter(booking -> (booking.getStatus().equals(Status.APPROVED)))
+                    .collect(toList());
 
+            setLastAndNextBookings(itemDto, oneItemBookingByStatus, LocalDateTime.now());
+        }
         log.info("Все данные вещи получены: {}.", itemDto);
         return itemDto;
     }
@@ -95,10 +100,10 @@ public class ItemServiceImpl implements ItemService {
                     .stream()
                     .collect(groupingBy(Comment::getItem, toList()));
 
-        Map<Item, List<Booking>> allBookings = bookingRepository.findAllByItemIdIn(itemIdList)
+        Map<Item, List<Booking>> allBookings = bookingRepository.findAllByItemIdInAndStatus(itemIdList, Status.APPROVED,
+                        Sort.by(ASC, "start"))
                 .stream()
                 .collect(groupingBy(Booking::getItem, toList()));
-
 
         return itemList
                 .stream()
@@ -108,7 +113,6 @@ public class ItemServiceImpl implements ItemService {
                     return setLastAndNextBookings(itemDto, allBookings.get(item), currentMoment);
                 })
                 .collect(toList());
-
     }
 
     @Override
@@ -196,33 +200,12 @@ public class ItemServiceImpl implements ItemService {
             Booking nextBooking = null;
 
             for (Booking booking : oneItemBookings) {
-
-                if (booking.getStatus().equals(Status.APPROVED)) {
-                    LocalDateTime bookingStart = booking.getStart();
-                    boolean startIsNotNull = bookingStart != null;
-                    LocalDateTime bookingEnd = booking.getEnd();
-                    boolean endIsNotNull = bookingEnd != null;
-
-                    boolean startIsNotBeforeCurrentMoment = startIsNotNull &&
-                            (bookingStart.isAfter(currentMoment) || bookingStart.equals(currentMoment));
-                    boolean endIsNotAfterCurrentMoment = endIsNotNull &&
-                            (bookingEnd.isBefore(currentMoment) || bookingEnd.equals(currentMoment));
-                    boolean bookingIsCurrent =
-                            (bookingStart.isBefore(currentMoment) && (bookingEnd.isAfter(currentMoment))) ||
-                            ((bookingStart.equals(currentMoment)) && (bookingEnd.isAfter(currentMoment))) ||
-                            ((bookingStart.isBefore(currentMoment)) && (bookingEnd.equals(currentMoment)));
-
-                    if (startIsNotNull && endIsNotNull && bookingIsCurrent) {
-                        lastBooking = booking;
-                    } else if (endIsNotAfterCurrentMoment &&
-                            ((lastBooking == null) || (lastBooking.getEnd().isBefore(bookingEnd)))) {
-                        lastBooking = booking;
-                    }
-
-                    if (startIsNotBeforeCurrentMoment &&
-                            (nextBooking == null || (nextBooking.getStart().isAfter(bookingStart)))) {
-                        nextBooking = booking;
-                    }
+                LocalDateTime bookingStart = booking.getStart();
+                if (!bookingStart.isAfter(currentMoment)) {
+                    lastBooking = booking;
+                }
+                if (nextBooking == null && bookingStart.isAfter(currentMoment)) {
+                    nextBooking = booking;
                 }
             }
 
@@ -230,12 +213,12 @@ public class ItemServiceImpl implements ItemService {
                 ItemBookingDto lastBookingDto = BookingMapper.toItemBookingDto(lastBooking);
                 itemDto.setLastBooking(lastBookingDto);
             }
+
             if (nextBooking != null) {
                 ItemBookingDto nextBookingDto = BookingMapper.toItemBookingDto(nextBooking);
                 itemDto.setNextBooking(nextBookingDto);
             }
         }
-
         return itemDto;
     }
 
