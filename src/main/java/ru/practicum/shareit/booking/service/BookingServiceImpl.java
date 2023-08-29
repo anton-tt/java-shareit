@@ -54,8 +54,6 @@ public class BookingServiceImpl implements BookingService {
     public ResponseBookingDto create(RequestBookingDto requestBookingDto, long userId) {
         User booker = getUserById(userId);
         Item item = getItemById(requestBookingDto.getItemId());
-        LocalDateTime startRequestBookingDto = requestBookingDto.getStart();
-        LocalDateTime endRequestBookingDto = requestBookingDto.getEnd();
 
          if (!item.isAvailable()) {
             throw new ValidationException(String.format("Вещь, которую хочет забронировать пользователь с id = %s," +
@@ -63,10 +61,6 @@ public class BookingServiceImpl implements BookingService {
         } else if (item.getOwner().getId() == userId) {
             throw new NotFoundException(String.format("Пользователь с id = %s, который хочет забронировать вещь " +
                     "является её владельцем. Выполнить операцию невозможно!", userId));
-        } else if (startRequestBookingDto.isAfter(endRequestBookingDto)
-                 || startRequestBookingDto.equals(endRequestBookingDto)) {
-             throw new ValidationException(String.format("Дата начала бронирования %s позже или совпадает с датой его" +
-                     " окончания %s! Выполнить операцию невозможно!", startRequestBookingDto, endRequestBookingDto));
         } else {
             Booking bookingData = BookingMapper.toBooking(requestBookingDto, item, booker);
             Booking booking = bookingRepository.save(bookingData);
@@ -158,7 +152,7 @@ public class BookingServiceImpl implements BookingService {
     @Override
     public List<ResponseBookingDto> getBookingsOneOwner(long ownerId, String state) {
         getUserById(ownerId);
-        if (itemRepository.findAllByOwnerId(ownerId).isEmpty()) {
+        if (!itemRepository.existsAllByOwnerId(ownerId)) {
             throw new NotFoundException(String.format("Пользователь с id = %s, запросивший информацию о бронировании " +
                     " своих вещей, не имеет ни одной вещи! Операцию выполнить невозможно.", ownerId));
         }
