@@ -181,65 +181,35 @@ public class BookingServiceImpl implements BookingService {
         Sort sortByStart = Sort.by(Sort.Direction.DESC, "start");
         LocalDateTime currentMoment = LocalDateTime.now();
 
-        boolean isBookerType = typeOfUser.equals(TYPE_BOOKER);
-
         try {
             switch (BookingState.valueOf(state)) {
                 case ALL:
-                    log.info("Получение из БД списка всех бронирований. Категория ALL.");
-                    if (isBookerType) {
-                        bookingList = bookingRepository.findAllByBookerId(userId, sortByStart);
-                    } else {
-                        bookingList = bookingRepository.allBookersByOwnerId(userId, sortByStart);
-                    }
+                    bookingList = BookingsUtil.selectBookingsByStateAll(bookingRepository, typeOfUser, userId, sortByStart);
                     break;
 
                 case CURRENT:
-                    log.info("Получение из БД списка действующих бронирований. Категория CURRENT.");
-                    if (isBookerType) {
-                        bookingList = bookingRepository.findAllByBookerIdAndStartBeforeAndEndAfter(userId, currentMoment,
+                    bookingList = BookingsUtil.selectBookingsByStateCurrent(bookingRepository, typeOfUser, userId,
                             currentMoment, sortByStart);
-                    } else {
-                        bookingList = bookingRepository.currentBookersByOwnerId(userId, currentMoment, sortByStart);
-                    }
                     break;
 
                 case PAST:
-                    log.info("Получение из БД списка завершённых бронирований. Категория PAST.");
-                    if (isBookerType) {
-                        bookingList = bookingRepository.findAllByBookerIdAndEndBefore(userId, currentMoment, sortByStart);
-                    } else {
-                        bookingList = bookingRepository.pastBookersByOwnerId(userId, currentMoment, sortByStart);
-                    }
+                    bookingList = BookingsUtil.selectBookingsByStatePast(bookingRepository, typeOfUser, userId,
+                            currentMoment, sortByStart);
                     break;
 
                 case FUTURE:
-                    log.info("Получение из БД списка будущих бронирований. Категория FUTURE.");
-                    if (isBookerType) {
-                        bookingList = bookingRepository.findAllByBookerIdAndStartAfter(userId, currentMoment, sortByStart);
-                    } else {
-                        bookingList = bookingRepository.futureBookersByOwnerId(userId, currentMoment, sortByStart);
-                    }
+                    bookingList = BookingsUtil.selectBookingsByStateFuture(bookingRepository, typeOfUser, userId,
+                            currentMoment, sortByStart);
                     break;
 
                 case WAITING:
-                    log.info("Получение из БД списка бронирований  со статусом Ожидает подтверждения. " +
-                                "Категория WAITING.");
-                    if (isBookerType) {
-                        bookingList = bookingRepository.findAllByBookerIdAndStatus(userId, Status.WAITING, sortByStart);
-                    } else {
-                        bookingList = bookingRepository.bookersByStatusAndOwnerId(userId, Status.WAITING, sortByStart);
-                    }
+                    bookingList = BookingsUtil.selectBookingsByStateWaiting(bookingRepository, typeOfUser, userId,
+                            sortByStart);
                     break;
 
                 case REJECTED:
-                    log.info("Получение из БД списка бронирований текущего пользователя со статусом " +
-                        "Отклонённые владельцем. Категория WAITING.");
-                    if (isBookerType) {
-                        bookingList = bookingRepository.findAllByBookerIdAndStatus(userId, Status.REJECTED, sortByStart);
-                    } else {
-                        bookingList = bookingRepository.bookersByStatusAndOwnerId(userId, Status.REJECTED, sortByStart);
-                    }
+                    bookingList = BookingsUtil.selectBookingsByStateRejected(bookingRepository, typeOfUser, userId,
+                            sortByStart);
                     break;
             }
 

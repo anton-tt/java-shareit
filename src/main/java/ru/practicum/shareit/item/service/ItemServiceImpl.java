@@ -69,11 +69,12 @@ public class ItemServiceImpl implements ItemService {
         log.info("Вещь найдена в БД: {}.", item);
 
         List<Comment> oneItemComments =  commentRepository.findByItemId(item.getId());
+        List<Booking> oneItemBooking =  bookingRepository.findByItemId(item.getId());
         FullResponseItemDto itemDto = ItemMapper.toFullResponseItemDto(item);
         setComments(itemDto, oneItemComments);
 
         if (item.getOwner().getId() == ownerId) {
-            setLastAndNextBookings(itemDto, LocalDateTime.now());
+            setLastAndNextBookings(itemDto, oneItemBooking, LocalDateTime.now());
         }
 
         log.info("Все данные вещи получены: {}.", itemDto);
@@ -86,36 +87,28 @@ public class ItemServiceImpl implements ItemService {
         log.info("Получение данных всех вещей пользователя из БД.");
         LocalDateTime currentMoment = LocalDateTime.now();
 
-        List<Item> itemList = itemRepository.findAll()
-                .stream()
-                .filter(item -> item.getOwner().getId() == userId)
-                .collect(toList());
+        List<Item> itemList = itemRepository.findAllByOwnerId(userId);
+        List<Long> itemIdList = itemList.stream().map(Item::getId).collect(toList());
 
-        Map<Item, List<Comment>> allComments = commentRepository.findAll(Sort.by(DESC, "created"))
+        Map<Item, List<Comment>> allComments = commentRepository.findAllByItemIdIn(itemIdList,
+                Sort.by(DESC, "created"))
+                    .stream()
+                    .collect(groupingBy(Comment::getItem, toList()));
+
+        Map<Item, List<Booking>> allBookings = bookingRepository.findAllByItemIdIn(itemIdList)
                 .stream()
-                .collect(groupingBy(Comment::getItem, toList()));
+                .collect(groupingBy(Booking::getItem, toList()));
+
 
         return itemList
                 .stream()
                 .map(item -> {
                     FullResponseItemDto itemDto = ItemMapper.toFullResponseItemDto(item);
                     setComments(itemDto, allComments.get(item));
-                    return setLastAndNextBookings(itemDto, currentMoment);
+                    return setLastAndNextBookings(itemDto, allBookings.get(item), currentMoment);
                 })
                 .collect(toList());
 
-    }
-
-    private FullResponseItemDto setComments(FullResponseItemDto itemDto, List<Comment> oneItemComments) {
-
-        if (oneItemComments != null) {
-            List<ResponseCommentDto> comments = oneItemComments
-                    .stream()
-                    .map(CommentMapper::toResponseCommentDto)
-                    .collect(toList());
-            itemDto.setComments(comments);
-        }
-        return itemDto;
     }
 
     @Override
@@ -169,12 +162,8 @@ public class ItemServiceImpl implements ItemService {
         Item item = getItemById(itemId);
         User user = getUserById(userId);
         LocalDateTime currentMoment = LocalDateTime.now();
-        List<Booking> oneUserBookingsOneItem = bookingRepository.findAllByBookerIdAndStatusAndEndBefore(userId,
-                        Status.APPROVED, currentMoment)
-                .stream()
-                .filter(booking -> booking.getItem().getId() == itemId)
-                .collect(toList());
-        if (oneUserBookingsOneItem.isEmpty()) {
+
+        if (!bookingRepository.existsAllByBookerIdAndStatusAndEndBefore(userId, Status.APPROVED, currentMoment)) {
             throw new ValidationException(String.format("Пользователь с id = %s, который хочет добавить комментарий, " +
                     "никогда не бронировал вещь с id = %s. Выполнить операцию невозможно!", userId, itemId));
         }
@@ -188,51 +177,62 @@ public class ItemServiceImpl implements ItemService {
 
     }
 
-    private FullResponseItemDto setLastAndNextBookings(FullResponseItemDto itemDto, LocalDateTime currentMoment) {
-        log.info("Поиск в БД бронирований вещи, отбор последнего бронирования и ближайшего следующего бронирования " +
-                "при положительном результате добавление данных к объекту вещи.");
-        List<Booking> itemBookings = bookingRepository.findAllByItemIdAndStatus(itemDto.getId(), Status.APPROVED);
+    private FullResponseItemDto setComments(FullResponseItemDto itemDto, List<Comment> oneItemComments) {
 
-        if (itemBookings != null) {
+        if (oneItemComments != null) {
+            List<ResponseCommentDto> comments = oneItemComments
+                    .stream()
+                    .map(CommentMapper::toResponseCommentDto)
+                    .collect(toList());
+            itemDto.setComments(comments);
+        }
+        return itemDto;
+    }
+
+    private FullResponseItemDto setLastAndNextBookings(FullResponseItemDto itemDto, List<Booking> oneItemBookings,
+                                                       LocalDateTime currentMoment) {
+        if (oneItemBookings != null) {
             Booking lastBooking = null;
             Booking nextBooking = null;
 
-            for (Booking booking : itemBookings) {
-                LocalDateTime bookingStart = booking.getStart();
-                boolean startIsNotNull = bookingStart != null;
-                LocalDateTime bookingEnd = booking.getEnd();
-                boolean endIsNotNull = bookingEnd != null;
+            for (Booking booking : oneItemBookings) {
 
-                boolean startIsNotBeforeCurrentMoment = startIsNotNull &&
-                        (bookingStart.isAfter(currentMoment) || bookingStart.equals(currentMoment));
-                boolean endIsNotAfterCurrentMoment = endIsNotNull &&
-                        (bookingEnd.isBefore(currentMoment) || bookingEnd.equals(currentMoment));
-                boolean bookingIsCurrent = (bookingStart.isBefore(currentMoment) && (bookingEnd.isAfter(currentMoment))) ||
-                        ((bookingStart.equals(currentMoment)) && (bookingEnd.isAfter(currentMoment))) ||
-                        ((bookingStart.isBefore(currentMoment)) && (bookingEnd.equals(currentMoment)));
+                if (booking.getStatus().equals(Status.APPROVED)) {
+                    LocalDateTime bookingStart = booking.getStart();
+                    boolean startIsNotNull = bookingStart != null;
+                    LocalDateTime bookingEnd = booking.getEnd();
+                    boolean endIsNotNull = bookingEnd != null;
 
-                if (startIsNotNull && endIsNotNull && bookingIsCurrent) {
-                    lastBooking = booking;
-                } else if (endIsNotAfterCurrentMoment &&
-                        ((lastBooking == null) || (lastBooking.getEnd().isBefore(bookingEnd)))) {
-                    lastBooking = booking;
-                }
+                    boolean startIsNotBeforeCurrentMoment = startIsNotNull &&
+                            (bookingStart.isAfter(currentMoment) || bookingStart.equals(currentMoment));
+                    boolean endIsNotAfterCurrentMoment = endIsNotNull &&
+                            (bookingEnd.isBefore(currentMoment) || bookingEnd.equals(currentMoment));
+                    boolean bookingIsCurrent =
+                            (bookingStart.isBefore(currentMoment) && (bookingEnd.isAfter(currentMoment))) ||
+                            ((bookingStart.equals(currentMoment)) && (bookingEnd.isAfter(currentMoment))) ||
+                            ((bookingStart.isBefore(currentMoment)) && (bookingEnd.equals(currentMoment)));
 
-                if (startIsNotBeforeCurrentMoment &&
-                        (nextBooking == null || (nextBooking.getStart().isAfter(bookingStart)))) {
-                    nextBooking = booking;
+                    if (startIsNotNull && endIsNotNull && bookingIsCurrent) {
+                        lastBooking = booking;
+                    } else if (endIsNotAfterCurrentMoment &&
+                            ((lastBooking == null) || (lastBooking.getEnd().isBefore(bookingEnd)))) {
+                        lastBooking = booking;
+                    }
+
+                    if (startIsNotBeforeCurrentMoment &&
+                            (nextBooking == null || (nextBooking.getStart().isAfter(bookingStart)))) {
+                        nextBooking = booking;
+                    }
                 }
             }
 
             if (lastBooking != null) {
                 ItemBookingDto lastBookingDto = BookingMapper.toItemBookingDto(lastBooking);
                 itemDto.setLastBooking(lastBookingDto);
-                log.info("Дата последнего бронирования и ближайшего следующего бронирования добавлена.");
             }
             if (nextBooking != null) {
                 ItemBookingDto nextBookingDto = BookingMapper.toItemBookingDto(nextBooking);
                 itemDto.setNextBooking(nextBookingDto);
-                log.info("Дата ближайшего следующего бронирования добавлена.");
             }
         }
 
