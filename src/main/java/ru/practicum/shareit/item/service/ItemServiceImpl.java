@@ -204,8 +204,9 @@ public class ItemServiceImpl implements ItemService {
                 if (!bookingStart.isAfter(currentMoment)) {
                     lastBooking = booking;
                 }
-                if (nextBooking == null && bookingStart.isAfter(currentMoment)) {
+                if (bookingStart.isAfter(currentMoment)) {
                     nextBooking = booking;
+                    break;
                 }
             }
 
