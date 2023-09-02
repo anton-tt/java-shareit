@@ -22,6 +22,8 @@ import ru.practicum.shareit.item.dto.ResponseItemDto;
 import ru.practicum.shareit.item.mapper.ItemMapper;
 import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.item.repository.ItemRepository;
+import ru.practicum.shareit.request.model.ItemRequest;
+import ru.practicum.shareit.request.repository.ItemRequestRepository;
 import ru.practicum.shareit.user.model.User;
 import ru.practicum.shareit.user.repository.UserRepository;
 import java.time.LocalDateTime;
@@ -43,6 +45,8 @@ public class ItemServiceImpl implements ItemService {
     private final BookingRepository bookingRepository;
     private final CommentRepository commentRepository;
 
+    private final ItemRequestRepository itemRequestRepository;
+
     private User getUserById(long id) {
         return userRepository.findById(id).orElseThrow(() -> new NotFoundException(String.format("Пользователь " +
                 "с id = %s отсутствует в БД. Выполнить операцию невозможно!", id)));
@@ -53,13 +57,24 @@ public class ItemServiceImpl implements ItemService {
                 "с id = %s отсутствует в БД. Выполнить операцию невозможно!", id)));
     }
 
+    private ItemRequest getItemRequestById(long id) {
+        return itemRequestRepository.findById(id).orElseThrow(() -> new NotFoundException(
+                String.format("запрос на вещь с id = %s отсутствует в БД. Выполнить операцию невозможно!", id)));
+    }
+
     @Override
     public ResponseItemDto create(RequestItemDto itemDto, long userId) {
         User owner = getUserById(userId);
         Item dataItem = ItemMapper.toItem(itemDto, owner);
+        long requestId = itemDto.getRequestId();
+        if (requestId > 0) {
+            dataItem.setItemRequest(getItemRequestById(requestId));
+        }
         Item item = itemRepository.save(dataItem);
-        log.info("Данные вещи добавлены в БД: {}.", item);
+        log.info("Данные новой вещи добавлены в БД: {}.", item);
+
         ResponseItemDto responseItemDto = ItemMapper.toResponseItemDto(item);
+        responseItemDto.setRequestId(requestId);
         log.info("Новая вещь создана: {}.", responseItemDto);
         return responseItemDto;
     }

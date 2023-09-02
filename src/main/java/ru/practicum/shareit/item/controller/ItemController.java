@@ -50,7 +50,7 @@ public class ItemController {
     @PatchMapping("/{id}")
     public ResponseItemDto updateItem(@RequestHeader(X_SHARER_USER_ID) long userId,
                                       @PathVariable long id,
-                                      @RequestBody  @Validated(Update.class) RequestItemDto item) {
+                                      @RequestBody @Validated(Update.class) RequestItemDto item) {
         log.info("");
         log.info("Обновление данных вещи с id = {}: {}", id, item);
         return itemService.update(id, item, userId);

@@ -4,9 +4,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import ru.practicum.shareit.utils.groups.Create;
 import ru.practicum.shareit.utils.groups.Update;
-import javax.validation.constraints.NotBlank;
-import javax.validation.constraints.NotNull;
-import javax.validation.constraints.Size;
+import javax.validation.constraints.*;
 
 @NoArgsConstructor
 @Data
@@ -22,5 +20,8 @@ public class RequestItemDto {
 
     @NotNull(groups = Create.class)
     private Boolean available;
+
+    @PositiveOrZero
+    private long requestId;
 
 }

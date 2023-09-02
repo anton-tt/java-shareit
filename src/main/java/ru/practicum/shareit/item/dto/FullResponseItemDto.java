@@ -4,6 +4,7 @@ import lombok.Builder;
 import lombok.Data;
 import ru.practicum.shareit.booking.dto.ItemBookingDto;
 import ru.practicum.shareit.comment.dto.ResponseCommentDto;
+import ru.practicum.shareit.request.dto.ItemRequestForItemDto;
 import java.util.List;
 
 @Builder
@@ -16,7 +17,7 @@ public class FullResponseItemDto {
     private Boolean available;
     private ItemBookingDto lastBooking;
     private ItemBookingDto nextBooking;
-    private Long requestId;
+    private ItemRequestForItemDto request;
     private List<ResponseCommentDto> comments;
 
 }
