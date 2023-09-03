@@ -2,6 +2,9 @@ package ru.practicum.shareit.item.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import ru.practicum.shareit.booking.dto.ItemBookingDto;
@@ -102,12 +105,13 @@ public class ItemServiceImpl implements ItemService {
     }
 
     @Override
-    public List<FullResponseItemDto> getItemsOneOwner(long userId) {
+    public List<FullResponseItemDto> getItemsOneOwner(long userId, int from, int size) {
         getUserById(userId);
         log.info("Получение данных всех вещей пользователя из БД.");
         LocalDateTime currentMoment = LocalDateTime.now();
 
-        List<Item> itemList = itemRepository.findAllByOwnerId(userId);
+        Pageable pageable = PageRequest.of(from / size, size);
+        Page<Item> itemList = itemRepository.findAllByOwnerId(userId, pageable);
         List<Long> itemIdList = itemList.stream().map(Item::getId).collect(toList());
 
         Map<Item, List<Comment>> allComments = commentRepository.findAllByItemIdIn(itemIdList,
@@ -162,10 +166,12 @@ public class ItemServiceImpl implements ItemService {
     }
 
     @Override
-    public List<ResponseItemDto> search(String text) {
+    public List<ResponseItemDto> search(String text, int from, int size) {
         List<ResponseItemDto> itemDtoList = new ArrayList<>();
         if (!text.isBlank()) {
-            itemDtoList = itemRepository.search(text)
+            Pageable pageable = PageRequest.of(from / size, size);
+            Page<Item> itemList = itemRepository.search(text, pageable);
+            itemDtoList = itemList
                     .stream()
                     .filter(Item::isAvailable)
                     .map(ItemMapper::toResponseItemDto)

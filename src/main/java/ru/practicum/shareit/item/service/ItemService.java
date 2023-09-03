@@ -13,13 +13,13 @@ public interface ItemService {
 
     FullResponseItemDto getById(long id, long ownerId);
 
-    List<FullResponseItemDto> getItemsOneOwner(long userId);
+    List<FullResponseItemDto> getItemsOneOwner(long userId, int from, int size);
 
     ResponseItemDto update(long id, RequestItemDto itemDto, long userId);
 
     void delete(long id, long userId);
 
-    List<ResponseItemDto> search(String text);
+    List<ResponseItemDto> search(String text, int from, int size);
 
     ResponseCommentDto createComment(long itemId, RequestCommentDto commentDto, long userId);
 

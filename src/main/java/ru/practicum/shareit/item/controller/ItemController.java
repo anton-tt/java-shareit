@@ -13,12 +13,14 @@ import ru.practicum.shareit.item.service.ItemService;
 import ru.practicum.shareit.utils.groups.Create;
 import ru.practicum.shareit.utils.groups.Update;
 import javax.validation.Valid;
+import javax.validation.constraints.Min;
 import java.util.List;
 import static ru.practicum.shareit.utils.Constants.X_SHARER_USER_ID;
 
 @RestController
 @RequestMapping("/items")
 @RequiredArgsConstructor
+@Validated
 @Slf4j
 public class ItemController {
 
@@ -41,10 +43,12 @@ public class ItemController {
     }
 
     @GetMapping
-    public List<FullResponseItemDto> getItemsOneUser(@RequestHeader(X_SHARER_USER_ID) long userId) {
+    public List<FullResponseItemDto> getItemsOneUser(@RequestHeader(X_SHARER_USER_ID) long userId,
+                                                     @RequestParam(defaultValue = "0") @Min(0) int from,
+                                                     @RequestParam(defaultValue = "10") @Min(1) int size) {
         log.info("");
         log.info("Поиск всех вещей, созданных пользователем с id = {}", userId);
-        return itemService.getItemsOneOwner(userId);
+        return itemService.getItemsOneOwner(userId, from, size);
     }
 
     @PatchMapping("/{id}")
@@ -66,10 +70,12 @@ public class ItemController {
 
     @GetMapping("/search")
     public List<ResponseItemDto> searchItems(@RequestHeader(X_SHARER_USER_ID) long userId,
-                                             @RequestParam String text) {
+                                             @RequestParam String text,
+                                             @RequestParam(defaultValue = "0") @Min(0) int from,
+                                             @RequestParam(defaultValue = "10") @Min(1) int size) {
         log.info("");
         log.info("Поиск вещей по определённому запросу пользователя");
-        return itemService.search(text);
+        return itemService.search(text, from, size);
     }
 
     @PostMapping("/{itemId}/comment")

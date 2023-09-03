@@ -8,7 +8,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import ru.practicum.shareit.exception.NotFoundException;
-import ru.practicum.shareit.exception.ValidationException;
 import ru.practicum.shareit.item.dto.ResponseItemDto;
 import ru.practicum.shareit.item.mapper.ItemMapper;
 import ru.practicum.shareit.item.model.Item;
@@ -104,13 +103,9 @@ public class ItemRequestServiceImpl implements ItemRequestService {
     }
 
     public List<FullResponseItemRequestDto> getAll(long userId, int from, int size) {
-        if (from < 0 || size < 1) {
-            throw new ValidationException("Некорректно заданы параметры постраничного выведения запросов! " +
-                    "Операцию выполнить невозможно.");
-        }
         getUserById(userId);
 
-        Pageable pageable = PageRequest.of(from, size, Sort.by(Sort.Direction.DESC, "created"));
+        Pageable pageable = PageRequest.of(from / size, size, Sort.by(Sort.Direction.DESC, "created"));
         Page<ItemRequest> requestList = itemRequestRepository.findAllByRequestorIdNot(userId, pageable);
         log.info("Из БД получены все запросы пользователей.");
         if (!requestList.hasContent()) {

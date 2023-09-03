@@ -2,7 +2,7 @@ package ru.practicum.shareit.booking.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.domain.Sort;
+import org.springframework.data.domain.*;
 import org.springframework.stereotype.Service;
 import ru.practicum.shareit.booking.dto.RequestBookingDto;
 import ru.practicum.shareit.booking.dto.ResponseBookingDto;
@@ -20,7 +20,7 @@ import ru.practicum.shareit.user.mapper.UserMapper;
 import ru.practicum.shareit.user.model.User;
 import ru.practicum.shareit.user.repository.UserRepository;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 import static ru.practicum.shareit.utils.Constants.TYPE_BOOKER;
@@ -133,10 +133,11 @@ public class BookingServiceImpl implements BookingService {
 
 
     @Override
-    public List<ResponseBookingDto> getBookingsOneBooker(long bookerId, String state) {
+    public List<ResponseBookingDto> getBookingsOneBooker(long bookerId, String state, int from, int size) {
         User booker = getUserById(bookerId);
-
-        List<ResponseBookingDto> bookingDtoList = selectBookingsByState(bookerId, state, TYPE_BOOKER)
+        Pageable pageable = PageRequest.of(from / size, size, Sort.by(Sort.Direction.DESC, "start"));
+        Page<Booking> bookingList = selectBookingsByState(bookerId, state, TYPE_BOOKER, pageable);
+        List<ResponseBookingDto> bookingDtoList = bookingList
             .stream()
             .map(booking -> BookingMapper.toResponseBookingDto(booking,
                     ItemMapper.toResponseItemDto(booking.getItem()),
@@ -149,13 +150,16 @@ public class BookingServiceImpl implements BookingService {
     }
 
     @Override
-    public List<ResponseBookingDto> getBookingsOneOwner(long ownerId, String state) {
+    public List<ResponseBookingDto> getBookingsOneOwner(long ownerId, String state, int from, int size) {
         getUserById(ownerId);
         if (!itemRepository.existsAllByOwnerId(ownerId)) {
             throw new NotFoundException(String.format("Пользователь с id = %s, запросивший информацию о бронировании " +
                     " своих вещей, не имеет ни одной вещи! Операцию выполнить невозможно.", ownerId));
         }
-        List<ResponseBookingDto> bookingDtoList = selectBookingsByState(ownerId, state, TYPE_OWNER)
+
+        Pageable pageable = PageRequest.of(from / size, size, Sort.by(Sort.Direction.DESC, "start"));
+        Page<Booking> bookingList = selectBookingsByState(ownerId, state, TYPE_OWNER, pageable);
+                List<ResponseBookingDto> bookingDtoList = bookingList
                 .stream()
                 .map(booking -> BookingMapper.toResponseBookingDto(booking,
                         ItemMapper.toResponseItemDto(booking.getItem()),
@@ -166,40 +170,40 @@ public class BookingServiceImpl implements BookingService {
         return bookingDtoList;
     }
 
-    private List<Booking> selectBookingsByState(Long userId, String state, String typeOfUser) {
-        List<Booking> bookingList = new ArrayList<>();
-        Sort sortByStart = Sort.by(Sort.Direction.DESC, "start");
+    private Page<Booking> selectBookingsByState(Long userId, String state, String typeOfUser, Pageable pageable) {
+        List<Booking> list = Collections.emptyList();
+        Page<Booking> bookingList = new PageImpl<>(list);
         LocalDateTime currentMoment = LocalDateTime.now();
 
         try {
             switch (BookingState.valueOf(state)) {
                 case ALL:
-                    bookingList = BookingsUtil.selectBookingsByStateAll(bookingRepository, typeOfUser, userId, sortByStart);
+                    bookingList = BookingsUtil.selectBookingsByStateAll(bookingRepository, typeOfUser, userId, pageable);
                     break;
 
                 case CURRENT:
                     bookingList = BookingsUtil.selectBookingsByStateCurrent(bookingRepository, typeOfUser, userId,
-                            currentMoment, sortByStart);
+                            currentMoment, pageable);
                     break;
 
                 case PAST:
                     bookingList = BookingsUtil.selectBookingsByStatePast(bookingRepository, typeOfUser, userId,
-                            currentMoment, sortByStart);
+                            currentMoment, pageable);
                     break;
 
                 case FUTURE:
                     bookingList = BookingsUtil.selectBookingsByStateFuture(bookingRepository, typeOfUser, userId,
-                            currentMoment, sortByStart);
+                            currentMoment, pageable);
                     break;
 
                 case WAITING:
                     bookingList = BookingsUtil.selectBookingsByStateWaiting(bookingRepository, typeOfUser, userId,
-                            sortByStart);
+                            pageable);
                     break;
 
                 case REJECTED:
                     bookingList = BookingsUtil.selectBookingsByStateRejected(bookingRepository, typeOfUser, userId,
-                            sortByStart);
+                            pageable);
                     break;
             }
 
