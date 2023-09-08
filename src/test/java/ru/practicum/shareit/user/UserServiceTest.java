@@ -56,7 +56,7 @@ public class UserServiceTest {
         Mockito.when(userRepository.findById(Mockito.any()))
                .thenThrow(new NotFoundException("Пользователь с id = 9999 отсутствует в БД. " +
                         "Выполнить операцию невозможно!"));
-        Exception exception = assertThrows(NotFoundException.class, ()-> userService.getById(9999));
+        Exception exception = assertThrows(NotFoundException.class, () -> userService.getById(9999));
 
         assertEquals("Пользователь с id = 9999 отсутствует в БД. Выполнить операцию невозможно!",
                 exception.getMessage());
