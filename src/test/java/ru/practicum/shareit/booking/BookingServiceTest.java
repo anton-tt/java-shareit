@@ -139,7 +139,6 @@ public class BookingServiceTest {
 
         assertEquals(bookingService.getBookingsOneBooker(bookerId, "ALL", 0, 10),
                 getResponseBookingDtoList(responseBookingApprovedDto));
-
     }
 
     @Test
@@ -153,6 +152,6 @@ public class BookingServiceTest {
 
         assertEquals(bookingService.getBookingsOneOwner(bookerId, "ALL", 0, 10),
                 getResponseBookingDtoList(responseBookingApprovedDto));
-
     }
+
 }

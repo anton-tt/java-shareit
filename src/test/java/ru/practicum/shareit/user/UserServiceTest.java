@@ -22,18 +22,23 @@ public class UserServiceTest {
 
     @Mock
     private UserRepository userRepository;
-
     @InjectMocks
     private UserServiceImpl userService;
 
-    private final RequestUserDto requestUserDto = RequestUserDto.builder().name("Test").email("test@mail.com").build();
-    private final RequestUserDto newDataUserDto = RequestUserDto.builder().name("User").email("user@mail.com").build();
-    private final User user = User.builder().id(100).name("Test").email("test@mail.com").build();
-    private final User newDataUser = User.builder().id(100).name("User").email("user@mail.com").build();
-    private final ResponseUserDto responseUserDto = ResponseUserDto.builder().id(100).name("Test")
-            .email("test@mail.com").build();
-    private final ResponseUserDto newResponseUserDto = ResponseUserDto.builder().id(100).name("User")
-            .email("user@mail.com").build();
+    private final long userId = 10L;
+    private final String userName = "userUser";
+    private final String userMail = "user@mail.com";
+    private final RequestUserDto requestUserDto = RequestUserDto.builder().name(userName).email(userMail).build();
+    private final User user = User.builder().id(userId).name(userName).email(userMail).build();
+    private final ResponseUserDto responseUserDto = ResponseUserDto.builder().id(userId).name(userName)
+            .email(userMail).build();
+
+    private final String newUserName = "newUser";
+    private final String newUserMail = "newUser@mail.com";
+    private final RequestUserDto newDataUserDto = RequestUserDto.builder().name(newUserName).email(newUserMail).build();
+    private final User newDataUser = User.builder().id(userId).name(newUserName).email(newUserMail).build();
+    private final ResponseUserDto newResponseUserDto = ResponseUserDto.builder().id(userId).name(newUserName)
+            .email(newUserMail).build();
 
     @Test
     void createUserTest() {
@@ -48,7 +53,7 @@ public class UserServiceTest {
         Mockito.when(userRepository.findById(Mockito.anyLong()))
                .thenReturn(Optional.ofNullable(user));
 
-        assertEquals(userService.getById(100L), responseUserDto);
+        assertEquals(userService.getById(userId), responseUserDto);
     }
 
     @Test
@@ -77,7 +82,7 @@ public class UserServiceTest {
         Mockito.when(userRepository.save(Mockito.any()))
                .thenReturn(newDataUser);
 
-        assertEquals(userService.update(100L, newDataUserDto), newResponseUserDto);
+        assertEquals(userService.update(userId, newDataUserDto), newResponseUserDto);
     }
 
     @Test
