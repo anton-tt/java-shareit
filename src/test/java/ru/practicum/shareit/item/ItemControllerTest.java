@@ -9,8 +9,6 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import ru.practicum.shareit.booking.dto.ItemBookingDto;
-import ru.practicum.shareit.booking.dto.ResponseBookingDto;
-import ru.practicum.shareit.booking.model.Booking;
 import ru.practicum.shareit.booking.model.Status;
 import ru.practicum.shareit.item.controller.ItemController;
 import ru.practicum.shareit.item.dto.FullResponseItemDto;
@@ -19,13 +17,10 @@ import ru.practicum.shareit.item.dto.ResponseItemDto;
 import ru.practicum.shareit.item.service.ItemService;
 import ru.practicum.shareit.user.dto.RequestUserDto;
 import ru.practicum.shareit.user.dto.ResponseUserDto;
-import ru.practicum.shareit.user.model.User;
-
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
-
 import static org.hamcrest.Matchers.is;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.*;
