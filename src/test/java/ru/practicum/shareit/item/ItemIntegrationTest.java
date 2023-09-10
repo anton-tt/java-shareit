@@ -118,7 +118,7 @@ public class ItemIntegrationTest {
         userService.create(requestOwnerDto);
         itemService.create(requestItemDto, ownerId);
         List<FullResponseItemDto> responseItemDtoList = itemService.getItemsOneOwner(ownerId, 0,10);
-        FullResponseItemDto responseUserDto = responseItemDtoList.get(0);
+        FullResponseItemDto responseItemDto = responseItemDtoList.get(0);
 
         assertThat(responseItemDtoList.size(),  equalTo(1));
         assertThat(responseItemDto.getName(), equalTo(requestItemDto.getName()));
