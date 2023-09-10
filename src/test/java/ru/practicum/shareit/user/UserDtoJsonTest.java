@@ -7,7 +7,6 @@ import org.springframework.boot.test.json.JacksonTester;
 import org.springframework.boot.test.json.JsonContent;
 import ru.practicum.shareit.user.dto.RequestUserDto;
 import ru.practicum.shareit.user.dto.ResponseUserDto;
-
 import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
 
 @JsonTest
@@ -16,13 +15,13 @@ public class UserDtoJsonTest {
     private JacksonTester<RequestUserDto> jsonRequest;
     @Autowired
     private JacksonTester<ResponseUserDto> jsonResponse;
+
     private final long userId = 10L;
     private final String userName = "userUser";
     private final String userMail = "user@mail.com";
     private final RequestUserDto requestUserDto = RequestUserDto.builder().name(userName).email(userMail).build();
     private final ResponseUserDto responseUserDto = ResponseUserDto.builder().id(userId).name(userName)
             .email(userMail).build();
-
 
     @Test
     void testResponseUserDto() throws Exception {
@@ -33,10 +32,10 @@ public class UserDtoJsonTest {
         assertThat(result).extractingJsonPathStringValue("$.email").isEqualTo(responseUserDto.getEmail());
     }
 
-@Test
+    @Test
     void testRequestUserDto() throws Exception {
         String jsonString = "{\"name\": \"userUser\", " +
-                "              \"email\": \"user@mail.com\"}";
+                            "\"email\": \"user@mail.com\"}";
 
         RequestUserDto result = jsonRequest.parseObject(jsonString);
         assertThat(result).isEqualTo(requestUserDto);
