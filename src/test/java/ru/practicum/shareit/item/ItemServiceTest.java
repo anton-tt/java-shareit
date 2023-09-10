@@ -328,4 +328,20 @@ public class ItemServiceTest {
 
         assertEquals(itemService.createComment(testItemId, requestCommentDto, testOneBookerId), responseCommentDto);
     }
+
+    @Test
+    void searchItemTest() {
+        String text = "Утюг";
+        item.setName(text);
+        responseItemDto.setName(text);
+
+        List<Item> itemList = new ArrayList<>();
+        itemList.add(item);
+        Page<Item> items = new PageImpl<>(itemList);
+        Mockito.when(itemRepository.search(Mockito.any(), Mockito.any()))
+                .thenReturn(items);
+
+        assertEquals(itemService.search(text, 0, 10), List.of(responseItemDto));
+    }
+
 }

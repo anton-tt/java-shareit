@@ -108,7 +108,7 @@ public class BookingsUtil {
     public Page<Booking> selectBookingsByStateRejected(BookingRepository bookingRepository, String typeOfUser,
                                                long userId, Pageable pageable) {
         log.info("Получение из БД списка бронирований текущего пользователя со статусом " +
-                "Отклонённые владельцем. Категория WAITING.");
+                "Отклонённые владельцем. Категория REJECTED.");
         List<Booking> list = Collections.emptyList();
         Page<Booking> bookingList = new PageImpl<>(list);
 

@@ -10,13 +10,19 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import ru.practicum.shareit.booking.dto.ItemBookingDto;
 import ru.practicum.shareit.booking.model.Status;
+import ru.practicum.shareit.comment.dto.RequestCommentDto;
+import ru.practicum.shareit.comment.dto.ResponseCommentDto;
+import ru.practicum.shareit.comment.model.Comment;
 import ru.practicum.shareit.item.controller.ItemController;
 import ru.practicum.shareit.item.dto.FullResponseItemDto;
 import ru.practicum.shareit.item.dto.RequestItemDto;
 import ru.practicum.shareit.item.dto.ResponseItemDto;
+import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.item.service.ItemService;
 import ru.practicum.shareit.user.dto.RequestUserDto;
 import ru.practicum.shareit.user.dto.ResponseUserDto;
+import ru.practicum.shareit.user.model.User;
+
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -47,6 +53,7 @@ public class ItemControllerTest {
     private final String ownerName = "ownerUser";
     private final String ownerMail = "owner@mail.com";
     private final RequestUserDto requestOwnerDto = RequestUserDto.builder().name(ownerName).email(ownerMail).build();
+    private final User owner = User.builder().id(ownerId).name(ownerName).email(ownerMail).build();
     private final ResponseUserDto responseOwnerDto = ResponseUserDto.builder().id(ownerId).name(ownerName)
             .email(ownerMail).build();
 
@@ -55,6 +62,10 @@ public class ItemControllerTest {
 
     private final long twoBookerId = 13;
    // private final User twoBooker = User.builder().id(testTwoBookerId).name("twoBooker").email("twoBooker@mail.com").build();
+
+    private final long authorId = 11;
+    private final String testAuthorName = "author";
+    private final User author = User.builder().id(authorId).name(testAuthorName).email("author@mail.com").build();
 
     private final long itemId = 5L;
     private final long oneBookingId = 301;
@@ -98,6 +109,17 @@ public class ItemControllerTest {
         return fullResponseItemDtoList;
     }
 
+    private final Item commentItem = Item.builder().id(itemId).name("Test").description("TestTestTestTestTest").available(true)
+            .owner(owner).build();
+
+    private final long testCommentId = 205;
+    private final RequestCommentDto requestCommentDto = RequestCommentDto.builder().text("TestTestTestTestTest").build();
+    private final Comment comment = Comment.builder().id(testCommentId).text("TestTestTestTestTest")
+            .created(LocalDateTime.of(2023, 9, 1, 12, 0)).item(commentItem).author(author).build();
+    private final ResponseCommentDto responseCommentDto = ResponseCommentDto.builder().id(testCommentId)
+            .text("TestTestTestTestTest")
+            .created(LocalDateTime.of(2023, 9, 1, 12, 0)).authorName(testAuthorName).build();
+
     @Test
     void createItemTest() throws Exception {
         when(itemService.create(any(), anyLong()))
@@ -134,7 +156,7 @@ public class ItemControllerTest {
         verify(itemService).getById(itemId, ownerId);
     }
 
-    @Test // !!!!! везде L и from!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    @Test
     void getItemsOneUserTest() throws Exception {
         List<FullResponseItemDto> fullResponseItemDtoList = getFullResponseItemDtoList(fullResponseItemDto);
         when(itemService.getItemsOneOwner(anyLong(), anyInt(), anyInt()))
@@ -180,6 +202,22 @@ public class ItemControllerTest {
                 .header(X_SHARER_USER_ID, ownerId))
                 .andExpect(status().isOk());
         verify(itemService).delete(itemId, ownerId);
+    }
+
+    @Test
+    void createCommentTest() throws Exception {
+        when(itemService.createComment(anyLong(), any(), anyLong()))
+                .thenReturn(responseCommentDto);
+
+        mvc.perform(post("/items/{itemId}/comment", itemId)
+                        .header(X_SHARER_USER_ID, ownerId)
+                        .content(mapper.writeValueAsString(requestCommentDto))
+                        .characterEncoding(StandardCharsets.UTF_8)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.authorName", is(author.getName())))
+                .andExpect(jsonPath("$.text", is(requestCommentDto.getText())));
     }
 
 }
