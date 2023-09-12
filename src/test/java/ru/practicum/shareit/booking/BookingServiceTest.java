@@ -133,8 +133,6 @@ class BookingServiceTest {
                 exception.getMessage());
     }
 
-
-
     @Test
     void testApproveBooking() {
         Mockito.when(userRepository.findById(Mockito.anyLong()))
