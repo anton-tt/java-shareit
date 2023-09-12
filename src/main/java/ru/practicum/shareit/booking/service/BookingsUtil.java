@@ -31,6 +31,8 @@ public class BookingsUtil {
             case TYPE_OWNER:
                 bookingList = bookingRepository.allBookersByOwnerId(userId, pageable);
                 break;
+            default:
+                bookingList = null;
         }
         return bookingList;
     }
@@ -47,8 +49,10 @@ public class BookingsUtil {
                     currentMoment, pageable);
                 break;
             case TYPE_OWNER:
-             bookingList = bookingRepository.currentBookersByOwnerId(userId, currentMoment, pageable);
+                bookingList = bookingRepository.currentBookersByOwnerId(userId, currentMoment, pageable);
                 break;
+            default:
+                bookingList = null;
         }
         return bookingList;
     }
@@ -66,6 +70,8 @@ public class BookingsUtil {
             case TYPE_OWNER:
                 bookingList = bookingRepository.pastBookersByOwnerId(userId, currentMoment, pageable);
                 break;
+            default:
+                bookingList = null;
         }
         return bookingList;
     }
@@ -83,6 +89,8 @@ public class BookingsUtil {
             case TYPE_OWNER:
                 bookingList = bookingRepository.futureBookersByOwnerId(userId, currentMoment, pageable);
                 break;
+            default:
+                bookingList = null;
         }
         return bookingList;
     }
@@ -101,6 +109,8 @@ public class BookingsUtil {
             case TYPE_OWNER:
                 bookingList = bookingRepository.bookersByStatusAndOwnerId(userId, Status.WAITING, pageable);
                 break;
+            default:
+                bookingList = null;
         }
         return bookingList;
     }
@@ -119,6 +129,8 @@ public class BookingsUtil {
             case TYPE_OWNER:
                 bookingList = bookingRepository.bookersByStatusAndOwnerId(userId, Status.REJECTED, pageable);
                 break;
+            default:
+                bookingList = null;
         }
         return bookingList;
     }

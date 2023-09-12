@@ -14,7 +14,6 @@ import ru.practicum.shareit.booking.model.Status;
 import ru.practicum.shareit.booking.service.BookingService;
 import ru.practicum.shareit.item.dto.ResponseItemDto;
 import ru.practicum.shareit.user.dto.ResponseUserDto;
-import ru.practicum.shareit.user.model.User;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -30,7 +29,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static ru.practicum.shareit.utils.Constants.X_SHARER_USER_ID;
 
 @WebMvcTest(controllers = BookingController.class)
-public class BookingControllerTest {
+class BookingControllerTest {
 
     @Autowired
     ObjectMapper mapper;
@@ -46,10 +45,6 @@ public class BookingControllerTest {
             .email(bookerMail).build();
 
     private final long ownerId = 11L;
-    private final String ownerName = "ownerUser";
-    private final String ownerMail = "owner@mail.com";
-    private final User owner = User.builder().id(ownerId).name(ownerName).email(ownerMail).build();
-
 
     private final long itemId = 5L;
     private final String itemName = "itemTest";
@@ -76,7 +71,7 @@ public class BookingControllerTest {
     }
 
     @Test
-    void createBookingTest() throws Exception {
+    void testCreateBooking() throws Exception {
         when(bookingService.create(any(), anyLong()))
                 .thenReturn(responseBookingDto);
 
@@ -96,7 +91,7 @@ public class BookingControllerTest {
     }
 
     @Test
-    void approveBookingTest() throws Exception {
+    void testApproveBooking() throws Exception {
         when(bookingService.approve(anyLong(), anyBoolean(), anyLong()))
                 .thenReturn(responseBookingApprovedDto);
 
@@ -111,7 +106,7 @@ public class BookingControllerTest {
     }
 
     @Test
-    void getBookingByIdTest() throws Exception {
+    void testGetBookingById() throws Exception {
         when(bookingService.getById(anyLong(), anyLong()))
                 .thenReturn(responseBookingDto);
 
@@ -129,7 +124,7 @@ public class BookingControllerTest {
     }
 
     @Test
-    void getBookingsOneUserTest() throws Exception {
+    void testGetBookingsOneUser() throws Exception {
         List<ResponseBookingDto> responseBookingDtoList = getResponseBookingDtoList(responseBookingApprovedDto);
         when(bookingService.getBookingsOneBooker(anyLong(), any(), anyInt(), anyInt()))
                 .thenReturn(responseBookingDtoList);
@@ -151,7 +146,7 @@ public class BookingControllerTest {
     }
 
     @Test
-    void getBookingsOneOwnerTest() throws Exception {
+    void testGetBookingsOneOwner() throws Exception {
         List<ResponseBookingDto> responseBookingDtoList = getResponseBookingDtoList(responseBookingApprovedDto);
         when(bookingService.getBookingsOneOwner(anyLong(), any(), anyInt(), anyInt()))
                 .thenReturn(responseBookingDtoList);

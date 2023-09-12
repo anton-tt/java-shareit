@@ -22,7 +22,7 @@ import static org.hamcrest.Matchers.equalTo;
 @SpringBootTest(properties = "db.name=test", webEnvironment = SpringBootTest.WebEnvironment.NONE)
 @RequiredArgsConstructor(onConstructor_ = @Autowired)
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
-public class UserIntegrationTest {
+class UserIntegrationTest {
 
     private final EntityManager em;
     private final UserServiceImpl userService;
@@ -37,62 +37,62 @@ public class UserIntegrationTest {
     private final RequestUserDto newDataUserDto = RequestUserDto.builder().name(newUserName).email(newUserMail).build();
 
     @Test
-    void createUserTest() {
+    void testCreateUser() {
         userService.create(requestUserDto);
         TypedQuery<User> query = em.createQuery("Select u from User u where u.email = :email", User.class);
         User user = query.setParameter("email", requestUserDto.getEmail()).getSingleResult();
 
-        assertThat(user.getId(),  equalTo(userId));
+        assertThat(user.getId(), equalTo(userId));
         assertThat(user.getName(), equalTo(requestUserDto.getName()));
         assertThat(user.getEmail(), equalTo(requestUserDto.getEmail()));
     }
 
     @Test
-    void getUserByIdTest() {
+    void testGetUserById() {
         userService.create(requestUserDto);
         ResponseUserDto responseUserDto = userService.getById(userId);
 
-        assertThat(responseUserDto.getId(),  equalTo(userId));
+        assertThat(responseUserDto.getId(), equalTo(userId));
         assertThat(responseUserDto.getName(), equalTo(requestUserDto.getName()));
         assertThat(responseUserDto.getEmail(), equalTo(requestUserDto.getEmail()));
     }
 
     @Test
-    void getAllUsersTest() {
+    void testGetAllUsers() {
         userService.create(requestUserDto);
         List<ResponseUserDto> responseUserDtoList = userService.getAll();
         ResponseUserDto responseUserDto = responseUserDtoList.get(0);
 
-        assertThat(responseUserDtoList.size(),  equalTo(1));
-        assertThat(responseUserDto.getId(),  equalTo(userId));
+        assertThat(responseUserDtoList.size(), equalTo(1));
+        assertThat(responseUserDto.getId(), equalTo(userId));
         assertThat(responseUserDto.getName(), equalTo(requestUserDto.getName()));
         assertThat(responseUserDto.getEmail(), equalTo(requestUserDto.getEmail()));
     }
 
     @Test
-    void updateUserTest() {
+    void testUpdateUser() {
         userService.create(requestUserDto);
 
         List<ResponseUserDto> responseUserDtoList = userService.getAll();
-        assertThat(responseUserDtoList.size(),  equalTo(1));
+        assertThat(responseUserDtoList.size(), equalTo(1));
         assertThat(responseUserDtoList.get(0).getEmail(), equalTo(requestUserDto.getEmail()));
 
         userService.update(userId, newDataUserDto);
         responseUserDtoList = userService.getAll();
-        assertThat(responseUserDtoList.size(),  equalTo(1));
+        assertThat(responseUserDtoList.size(), equalTo(1));
         assertThat(responseUserDtoList.get(0).getEmail(), equalTo(newDataUserDto.getEmail()));
     }
 
     @Test
-    void deleteUserTest() {
+    void testDeleteUser() {
         userService.create(requestUserDto);
         List<ResponseUserDto> responseUserDtoList = userService.getAll();
-        assertThat(responseUserDtoList.size(),  equalTo(1));
+        assertThat(responseUserDtoList.size(), equalTo(1));
         assertThat(responseUserDtoList.get(0).getEmail(), equalTo(requestUserDto.getEmail()));
 
         userService.delete(userId);
         responseUserDtoList = userService.getAll();
-        assertThat(responseUserDtoList.size(),  equalTo(0));
+        assertThat(responseUserDtoList.size(), equalTo(0));
     }
 
 }

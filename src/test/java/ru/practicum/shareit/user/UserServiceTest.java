@@ -20,7 +20,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 @ExtendWith(MockitoExtension.class)
-public class UserServiceTest {
+class UserServiceTest {
 
     @Mock
     private UserRepository userRepository;
@@ -47,7 +47,7 @@ public class UserServiceTest {
     private final long notExistingUserId = 9999L;
 
     @Test
-    void createUserTest() {
+    void testCreateUser() {
         Mockito.when(userRepository.save(Mockito.any()))
                .thenReturn(user);
 
@@ -55,7 +55,7 @@ public class UserServiceTest {
     }
 
     @Test
-    void createUserWithDuplicateEmailTest() {
+    void testCreateUserWithDuplicateEmail() {
         Mockito.when(userRepository.save(Mockito.any()))
                 .thenThrow(new ValidationException("Пользователь с такой же эл.почтой уже существует! " +
                         "Выполнить операцию невозможно."));
@@ -66,7 +66,7 @@ public class UserServiceTest {
     }
 
     @Test
-    void getUserByIdTest() {
+    void testGetUserById() {
         Mockito.when(userRepository.findById(Mockito.anyLong()))
                 .thenReturn(Optional.ofNullable(user));
 
@@ -74,7 +74,7 @@ public class UserServiceTest {
     }
 
     @Test
-    void getUserByNotExistingIdTest() {
+    void testGetUserByNotExistingId() {
         Mockito.when(userRepository.findById(Mockito.any()))
                .thenThrow(new NotFoundException("Пользователь с id = 9999 отсутствует в БД. " +
                         "Выполнить операцию невозможно!"));
@@ -85,7 +85,7 @@ public class UserServiceTest {
     }
 
     @Test
-    void getAllUsersTest() {
+    void testGetAllUsers() {
         Mockito.when(userRepository.findAll())
                .thenReturn(List.of(user));
 
@@ -93,7 +93,7 @@ public class UserServiceTest {
     }
 
     @Test
-    void getAllUsersEmptyTest() {
+    void testGetAllUsersEmpty() {
         Mockito.when(userRepository.findAll())
                 .thenReturn(new ArrayList<>());
 
@@ -101,7 +101,7 @@ public class UserServiceTest {
     }
 
     @Test
-    void updateUserTest() {
+    void testUpdateUser() {
         Mockito.when(userRepository.findById(Mockito.anyLong()))
                .thenReturn(Optional.ofNullable(user));
         Mockito.when(userRepository.save(Mockito.any()))
@@ -111,7 +111,7 @@ public class UserServiceTest {
     }
 
     @Test
-    void updateNotExistUserTest() {
+    void testUpdateNotExistUser() {
         Mockito.when(userRepository.findById(Mockito.anyLong()))
                 .thenThrow(new NotFoundException("Пользователь с id = 9999 отсутствует в БД. " +
                 "Выполнить операцию невозможно!"));
@@ -123,7 +123,7 @@ public class UserServiceTest {
     }
 
     @Test
-    void updateUserWithDuplicateEmailTest() {
+    void testUpdateUserWithDuplicateEmail() {
         Mockito.when(userRepository.findById(Mockito.anyLong()))
                 .thenReturn(Optional.ofNullable(user));
         Mockito.when(userRepository.save(Mockito.any()))
@@ -137,7 +137,7 @@ public class UserServiceTest {
     }
 
     @Test
-    void deleteUserTest() {
+    void testDeleteUser() {
         Mockito.when(userRepository.findById(Mockito.anyLong()))
                .thenReturn(Optional.ofNullable(user));
         userService.delete(userId);
@@ -146,7 +146,7 @@ public class UserServiceTest {
     }
 
     @Test
-    void deleteNotExistUserTest() {
+    void testDeleteNotExistUser() {
         Mockito.when(userRepository.findById(Mockito.anyLong()))
                 .thenThrow(new NotFoundException("Пользователь с id = 9999 отсутствует в БД. " +
                         "Выполнить операцию невозможно!"));

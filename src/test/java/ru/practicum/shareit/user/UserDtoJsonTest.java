@@ -10,7 +10,7 @@ import ru.practicum.shareit.user.dto.ResponseUserDto;
 import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
 
 @JsonTest
-public class UserDtoJsonTest {
+class UserDtoJsonTest {
     @Autowired
     private JacksonTester<RequestUserDto> jsonRequest;
     @Autowired
@@ -24,21 +24,21 @@ public class UserDtoJsonTest {
             .email(userMail).build();
 
     @Test
-    void testResponseUserDto() throws Exception {
-        JsonContent<ResponseUserDto> result = jsonResponse.write(responseUserDto);
-
-        assertThat(result).extractingJsonPathNumberValue("$.id", Long.class).isEqualTo(10);
-        assertThat(result).extractingJsonPathStringValue("$.name").isEqualTo(responseUserDto.getName());
-        assertThat(result).extractingJsonPathStringValue("$.email").isEqualTo(responseUserDto.getEmail());
-    }
-
-    @Test
     void testRequestUserDto() throws Exception {
         String jsonString = "{\"name\": \"userUser\", " +
-                            "\"email\": \"user@mail.com\"}";
+                "\"email\": \"user@mail.com\"}";
 
         RequestUserDto result = jsonRequest.parseObject(jsonString);
         assertThat(result).isEqualTo(requestUserDto);
+    }
+
+    @Test
+    void testResponseUserDto() throws Exception {
+        JsonContent<ResponseUserDto> result = jsonResponse.write(responseUserDto);
+
+        assertThat(result).extractingJsonPathNumberValue("$.id").isEqualTo(10);
+        assertThat(result).extractingJsonPathStringValue("$.name").isEqualTo(responseUserDto.getName());
+        assertThat(result).extractingJsonPathStringValue("$.email").isEqualTo(responseUserDto.getEmail());
     }
 
 }

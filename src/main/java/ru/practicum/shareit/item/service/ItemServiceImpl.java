@@ -94,7 +94,7 @@ public class ItemServiceImpl implements ItemService {
         if ((item.getOwner().getId() == ownerId) && (oneItemBooking != null)) {
             List<Booking> oneItemBookingByStatus = oneItemBooking
                     .stream()
-                    .filter(booking -> (booking.getStatus().equals(Status.APPROVED)))
+                    .filter((Booking booking) -> (booking.getStatus().equals(Status.APPROVED)))
                     .collect(toList());
 
             setLastAndNextBookings(itemDto, oneItemBookingByStatus, LocalDateTime.now());
@@ -125,7 +125,7 @@ public class ItemServiceImpl implements ItemService {
 
         return itemList
                 .stream()
-                .map(item -> {
+                .map((Item item) -> {
                     FullResponseItemDto itemDto = ItemMapper.toFullResponseItemDto(item);
                     setComments(itemDto, allComments.get(item));
                     return setLastAndNextBookings(itemDto, allBookings.get(item), currentMoment);

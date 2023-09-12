@@ -12,20 +12,15 @@ import ru.practicum.shareit.booking.dto.ItemBookingDto;
 import ru.practicum.shareit.booking.model.Status;
 import ru.practicum.shareit.comment.dto.RequestCommentDto;
 import ru.practicum.shareit.comment.dto.ResponseCommentDto;
-import ru.practicum.shareit.comment.model.Comment;
 import ru.practicum.shareit.item.controller.ItemController;
 import ru.practicum.shareit.item.dto.FullResponseItemDto;
 import ru.practicum.shareit.item.dto.RequestItemDto;
 import ru.practicum.shareit.item.dto.ResponseItemDto;
 import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.item.service.ItemService;
-import ru.practicum.shareit.user.dto.RequestUserDto;
-import ru.practicum.shareit.user.dto.ResponseUserDto;
 import ru.practicum.shareit.user.model.User;
-
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.List;
 import static org.hamcrest.Matchers.is;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -40,7 +35,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static ru.practicum.shareit.utils.Constants.X_SHARER_USER_ID;
 
 @WebMvcTest(controllers = ItemController.class)
-public class ItemControllerTest {
+class ItemControllerTest {
 
     @Autowired
     ObjectMapper mapper;
@@ -52,16 +47,10 @@ public class ItemControllerTest {
     private final long ownerId = 10L;
     private final String ownerName = "ownerUser";
     private final String ownerMail = "owner@mail.com";
-    private final RequestUserDto requestOwnerDto = RequestUserDto.builder().name(ownerName).email(ownerMail).build();
     private final User owner = User.builder().id(ownerId).name(ownerName).email(ownerMail).build();
-    private final ResponseUserDto responseOwnerDto = ResponseUserDto.builder().id(ownerId).name(ownerName)
-            .email(ownerMail).build();
 
     private final long oneBookerId = 12;
-    //private final User oneBooker = User.builder().id(testOneBookerId).name("oneBooker").email("oneBooker@mail.com").build();
-
     private final long twoBookerId = 13;
-   // private final User twoBooker = User.builder().id(testTwoBookerId).name("twoBooker").email("twoBooker@mail.com").build();
 
     private final long authorId = 11;
     private final String testAuthorName = "author";
@@ -73,8 +62,6 @@ public class ItemControllerTest {
             10, 10);
     private final LocalDateTime endOneBooking = LocalDateTime.of(2023, 9, 10, 12,
             10, 10);
-    //private final Booking oneBooking = Booking.builder().id(oneBookingId).start(startOneBooking).end(endOneBooking)
-       //     .status(Status.APPROVED).item(item).booker(oneBooker).build();
     private final ItemBookingDto oneBookingDto = ItemBookingDto.builder().id(oneBookingId).start(startOneBooking)
             .end(endOneBooking).status(Status.APPROVED).itemId(itemId).bookerId(oneBookerId).build();
 
@@ -83,8 +70,6 @@ public class ItemControllerTest {
             10,10);
     private final LocalDateTime endTwoBooking = LocalDateTime.of(2023, 9, 20, 12,
             10,10);
-    //private final Booking twoBooking = Booking.builder().id(twoBookingId).start(startTwoBooking).end(endTwoBooking)
-          //  .status(Status.APPROVED).item(item).booker(twoBooker).build();
     private final ItemBookingDto twoBookingDto = ItemBookingDto.builder().id(twoBookingId).start(startTwoBooking)
             .end(endTwoBooking).status(Status.APPROVED).itemId(itemId).bookerId(twoBookerId).build();
 
@@ -103,25 +88,18 @@ public class ItemControllerTest {
     private final ResponseItemDto newResponseItemDto = ResponseItemDto.builder().id(itemId).name(newItemName)
             .description(newItemDescription).available(true).requestId(0).build();
 
-    private List<FullResponseItemDto> getFullResponseItemDtoList(FullResponseItemDto fullResponseItemDto) {
-        List<FullResponseItemDto> fullResponseItemDtoList = new ArrayList<>();
-        fullResponseItemDtoList.add(fullResponseItemDto);
-        return fullResponseItemDtoList;
-    }
-
-    private final Item commentItem = Item.builder().id(itemId).name("Test").description("TestTestTestTestTest").available(true)
-            .owner(owner).build();
+    private final Item commentItem = Item.builder().id(itemId).name("Test").description("TestTestTestTestTest")
+            .available(true).owner(owner).build();
 
     private final long testCommentId = 205;
     private final RequestCommentDto requestCommentDto = RequestCommentDto.builder().text("TestTestTestTestTest").build();
-    private final Comment comment = Comment.builder().id(testCommentId).text("TestTestTestTestTest")
-            .created(LocalDateTime.of(2023, 9, 1, 12, 0)).item(commentItem).author(author).build();
+
     private final ResponseCommentDto responseCommentDto = ResponseCommentDto.builder().id(testCommentId)
-            .text("TestTestTestTestTest")
-            .created(LocalDateTime.of(2023, 9, 1, 12, 0)).authorName(testAuthorName).build();
+            .text("TestTestTestTestTest").created(LocalDateTime.of(2023, 9, 1, 12, 0))
+            .authorName(testAuthorName).build();
 
     @Test
-    void createItemTest() throws Exception {
+    void testCreateItem() throws Exception {
         when(itemService.create(any(), anyLong()))
                 .thenReturn(responseItemDto);
 
@@ -139,7 +117,7 @@ public class ItemControllerTest {
     }
 
     @Test
-    void getItemByIdTest() throws Exception {
+    void testGetItemById() throws Exception {
         when(itemService.getById(anyLong(), anyLong()))
                 .thenReturn(fullResponseItemDto);
 
@@ -157,8 +135,8 @@ public class ItemControllerTest {
     }
 
     @Test
-    void getItemsOneUserTest() throws Exception {
-        List<FullResponseItemDto> fullResponseItemDtoList = getFullResponseItemDtoList(fullResponseItemDto);
+    void testGetItemsOneUser() throws Exception {
+        List<FullResponseItemDto> fullResponseItemDtoList = List.of(fullResponseItemDto);
         when(itemService.getItemsOneOwner(anyLong(), anyInt(), anyInt()))
                 .thenReturn(fullResponseItemDtoList);
 
@@ -178,7 +156,7 @@ public class ItemControllerTest {
     }
 
     @Test
-    void updateItemTest() throws Exception {
+    void testUpdateItem() throws Exception {
         when(itemService.update(anyLong(), any(), anyLong()))
                 .thenReturn(newResponseItemDto);
 
@@ -197,7 +175,7 @@ public class ItemControllerTest {
     }
 
     @Test
-    void deleteItemTest() throws Exception {
+    void testDeleteItem() throws Exception {
         mvc.perform(MockMvcRequestBuilders.delete("/items/{id}", itemId)
                 .header(X_SHARER_USER_ID, ownerId))
                 .andExpect(status().isOk());
@@ -205,7 +183,7 @@ public class ItemControllerTest {
     }
 
     @Test
-    void createCommentTest() throws Exception {
+    void testCreateComment() throws Exception {
         when(itemService.createComment(anyLong(), any(), anyLong()))
                 .thenReturn(responseCommentDto);
 

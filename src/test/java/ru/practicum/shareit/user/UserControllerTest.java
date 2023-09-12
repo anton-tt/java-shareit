@@ -27,7 +27,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(controllers = UserController.class)
-public class UserControllerTest {
+class UserControllerTest {
 
     @Autowired
     ObjectMapper mapper;
@@ -56,7 +56,7 @@ public class UserControllerTest {
     }
 
     @Test
-    void createUserTest() throws Exception {
+    void testCreateUser() throws Exception {
         when(userService.create(any()))
                 .thenReturn(responseUserDto);
 
@@ -72,7 +72,7 @@ public class UserControllerTest {
     }
 
     @Test
-    void getUserByIdTest() throws Exception {
+    void testGetUserById() throws Exception {
         when(userService.getById(anyLong()))
                 .thenReturn(responseUserDto);
 
@@ -90,7 +90,7 @@ public class UserControllerTest {
     }
 
     @Test
-    void getAllUsersTest() throws Exception {
+    void testGetAllUsers() throws Exception {
         List<ResponseUserDto> responseUserDtoList = getResponseUserDtoList(responseUserDto);
         when(userService.getAll())
                 .thenReturn(responseUserDtoList);
@@ -109,7 +109,7 @@ public class UserControllerTest {
     }
 
     @Test
-    void updateUserTest() throws Exception {
+    void testUpdateUser() throws Exception {
         when(userService.update(anyLong(), any()))
                 .thenReturn(newResponseUserDto);
 
@@ -125,7 +125,7 @@ public class UserControllerTest {
     }
 
     @Test
-    void deleteUserTest() throws Exception {
+    void testDeleteUser() throws Exception {
         mvc.perform(MockMvcRequestBuilders.delete("/users/{id}", userId))
                 .andExpect(status().isOk());
         verify(userService).delete(userId);

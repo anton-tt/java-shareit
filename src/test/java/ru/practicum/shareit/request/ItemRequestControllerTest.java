@@ -13,10 +13,8 @@ import ru.practicum.shareit.request.dto.RequestItemRequestDto;
 import ru.practicum.shareit.request.dto.ResponseItemRequestDto;
 import ru.practicum.shareit.request.service.ItemRequestService;
 import ru.practicum.shareit.user.dto.ResponseUserDto;
-import ru.practicum.shareit.user.model.User;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.List;
 import static org.hamcrest.Matchers.is;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -30,7 +28,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static ru.practicum.shareit.utils.Constants.X_SHARER_USER_ID;
 
 @WebMvcTest(controllers = ItemRequestController.class)
-public class ItemRequestControllerTest {
+class ItemRequestControllerTest {
 
     @Autowired
     ObjectMapper mapper;
@@ -42,7 +40,6 @@ public class ItemRequestControllerTest {
     private final long requestorId = 10;
     private final String requestorName = "requestorUser";
     private final String requestorMail = "requestor@mail.com";
-    private final User requestor = User.builder().id(requestorId).name(requestorName).email(requestorMail).build();
     private final ResponseUserDto responseUserDto = ResponseUserDto.builder().id(requestorId).name(requestorName)
             .email(requestorMail).build();
 
@@ -55,15 +52,8 @@ public class ItemRequestControllerTest {
     FullResponseItemRequestDto fullResponseItemRequestDto = FullResponseItemRequestDto.builder().id(requestId)
             .description(requestDescription).created(requestDateTime).build();
 
-    private List<FullResponseItemRequestDto> getFullResponseItemRequestDtoList(FullResponseItemRequestDto
-                                                                                       fullResponseItemRequestDto) {
-        List<FullResponseItemRequestDto> fullResponseItemRequestDtoList = new ArrayList<>();
-        fullResponseItemRequestDtoList.add(fullResponseItemRequestDto);
-        return fullResponseItemRequestDtoList;
-    }
-
     @Test
-    void createItemRequestTest() throws Exception {
+    void testCreateItemRequest() throws Exception {
         when(itemRequestService.create(any(), anyLong()))
                 .thenReturn(responseItemRequestDto);
 
@@ -80,7 +70,7 @@ public class ItemRequestControllerTest {
     }
 
     @Test
-    void getRequestsByIdTest() throws Exception {
+    void testGetRequestsById() throws Exception {
         when(itemRequestService.getById(anyLong(), anyLong()))
                 .thenReturn(fullResponseItemRequestDto);
 
@@ -98,9 +88,8 @@ public class ItemRequestControllerTest {
     }
 
     @Test
-    void getOwnItemRequestsTest() throws Exception {
-        List<FullResponseItemRequestDto> fullResponseItemRequestDtoList =
-                getFullResponseItemRequestDtoList(fullResponseItemRequestDto);
+    void testGetOwnItemRequests() throws Exception {
+        List<FullResponseItemRequestDto> fullResponseItemRequestDtoList = List.of(fullResponseItemRequestDto);
         when(itemRequestService.getOwnItemRequests(anyLong()))
                 .thenReturn(fullResponseItemRequestDtoList);
 
@@ -118,9 +107,8 @@ public class ItemRequestControllerTest {
     }
 
     @Test
-    void getAllRequestsTest() throws Exception {
-        List<FullResponseItemRequestDto> fullResponseItemRequestDtoList =
-                getFullResponseItemRequestDtoList(fullResponseItemRequestDto);
+    void testGetAllRequests() throws Exception {
+        List<FullResponseItemRequestDto> fullResponseItemRequestDtoList = List.of(fullResponseItemRequestDto);
         when(itemRequestService.getAll(anyLong(), anyInt(), anyInt()))
                 .thenReturn(fullResponseItemRequestDtoList);
 

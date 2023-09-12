@@ -94,7 +94,7 @@ public class ItemRequestServiceImpl implements ItemRequestService {
             log.info("Формируем итоговый список запросов.");
             return requestList
                     .stream()
-                    .map(request -> {
+                    .map((ItemRequest request) -> {
                         FullResponseItemRequestDto requestDto = ItemRequestMapper.toFullResponseItemRequestDto(request);
                         return setItemList(requestDto, allItems.get(request));
                     })
@@ -122,7 +122,7 @@ public class ItemRequestServiceImpl implements ItemRequestService {
             log.info("Формируем итоговый список запросов.");
             return requestList
                     .stream()
-                    .map(request -> {
+                    .map((ItemRequest request) -> {
                         FullResponseItemRequestDto requestDto = ItemRequestMapper.toFullResponseItemRequestDto(request);
                         return setItemList(requestDto, allItems.get(request));
                     })

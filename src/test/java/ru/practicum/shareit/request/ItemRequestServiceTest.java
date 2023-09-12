@@ -27,7 +27,7 @@ import java.util.Optional;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 @ExtendWith(MockitoExtension.class)
-public class ItemRequestServiceTest {
+class ItemRequestServiceTest {
 
     @Mock
     private ItemRequestRepository itemRequestRepository;
@@ -62,19 +62,6 @@ public class ItemRequestServiceTest {
     FullResponseItemRequestDto fullResponseItemRequestDto = FullResponseItemRequestDto.builder().id(requestId)
             .description(requestDescription).created(requestDateTime).build();
 
-    private List<ItemRequest> getItemRequestList(ItemRequest itemRequest) {
-        List<ItemRequest> itemRequestList = new ArrayList<>();
-        itemRequestList.add(itemRequest);
-        return itemRequestList;
-    }
-
-    private List<FullResponseItemRequestDto> getFullResponseItemRequestDtoList(FullResponseItemRequestDto
-                                                                                       fullResponseItemRequestDto) {
-        List<FullResponseItemRequestDto> fullResponseItemRequestDtoList = new ArrayList<>();
-        fullResponseItemRequestDtoList.add(fullResponseItemRequestDto);
-        return fullResponseItemRequestDtoList;
-    }
-
     private Page<ItemRequest> getItemRequestPage(ItemRequest itemRequest) {
         List<ItemRequest> itemRequestList = new ArrayList<>();
         itemRequestList.add(itemRequest);
@@ -106,7 +93,7 @@ public class ItemRequestServiceTest {
     private final int size = 10;
 
     @Test
-    void createItemRequestTest() {
+    void testCreateItemRequest() {
         Mockito.when(userRepository.findById(Mockito.anyLong()))
                 .thenReturn(Optional.ofNullable(requestor));
         Mockito.when(itemRequestRepository.save(Mockito.any()))
@@ -116,47 +103,47 @@ public class ItemRequestServiceTest {
     }
 
     @Test
-    void getItemRequestByIdTest() {
+    void testGetItemRequestById() {
         Mockito.when(userRepository.findById(Mockito.anyLong()))
                 .thenReturn(Optional.ofNullable(requestor));
         Mockito.when(itemRequestRepository.findById(Mockito.anyLong()))
                 .thenReturn(Optional.ofNullable(itemRequest));
 
         Mockito.when(itemRepository.findByItemRequestId(Mockito.anyLong()))
-                .thenReturn(getItemList(item));
+                .thenReturn(List.of(item));
 
         fullResponseItemRequestDto.setItems(getResponseItemDtoList(responseItemDto));
         assertEquals(itemRequestService.getById(requestId, ownerId), fullResponseItemRequestDto);
     }
 
     @Test
-    void getOwnItemRequestsTest() {
+    void testGetOwnItemRequests() {
         Mockito.when(userRepository.findById(Mockito.anyLong()))
                 .thenReturn(Optional.ofNullable(requestor));
         Mockito.when(itemRequestRepository.existsAllByRequestorId(Mockito.anyLong()))
                 .thenReturn(true);
         Mockito.when(itemRequestRepository.findAllByRequestorIdOrderByCreatedDesc(Mockito.anyLong()))
-                .thenReturn(getItemRequestList(itemRequest));
+                .thenReturn(List.of(itemRequest));
         Mockito.when(itemRepository.findAllByItemRequestIdIn(Mockito.any()))
-                .thenReturn(getItemList(item));
+                .thenReturn(List.of(item));
 
         fullResponseItemRequestDto.setItems(getResponseItemDtoList(responseItemDto));
         assertEquals(itemRequestService.getOwnItemRequests(requestorId),
-                getFullResponseItemRequestDtoList(fullResponseItemRequestDto));
+                List.of(fullResponseItemRequestDto));
     }
 
     @Test
-    void getAllItemRequestsTest() {
+    void testGetAllItemRequests() {
         Mockito.when(userRepository.findById(Mockito.anyLong()))
                 .thenReturn(Optional.ofNullable(owner));
         Mockito.when(itemRequestRepository.findAllByRequestorIdNot(Mockito.anyLong(), Mockito.any()))
                 .thenReturn(getItemRequestPage(itemRequest));
         Mockito.when(itemRepository.findByItemRequestIdIsNotNull())
-                .thenReturn(getItemList(item));
+                .thenReturn(List.of(item));
 
         fullResponseItemRequestDto.setItems(getResponseItemDtoList(responseItemDto));
         assertEquals(itemRequestService.getAll(ownerId, from, size),
-                getFullResponseItemRequestDtoList(fullResponseItemRequestDto));
-
+               List.of(fullResponseItemRequestDto));
     }
+
 }

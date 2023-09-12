@@ -29,7 +29,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 @ExtendWith(MockitoExtension.class)
-public class BookingServiceTest {
+class BookingServiceTest {
 
     @Mock
     private BookingRepository bookingRepository;
@@ -96,7 +96,7 @@ public class BookingServiceTest {
     }
 
     @Test
-    void createBookingTest() {
+    void testCreateBooking() {
         Mockito.when(userRepository.findById(Mockito.anyLong()))
                 .thenReturn(Optional.ofNullable(booker));
         Mockito.when(itemRepository.findById(Mockito.anyLong()))
@@ -108,7 +108,7 @@ public class BookingServiceTest {
     }
 
     @Test
-    void createBookingNotExistingUserTest() {
+    void testCreateBookingNotExistingUser() {
         Mockito.when(userRepository.findById(Mockito.any()))
                 .thenThrow(new NotFoundException(String.format("Пользователь с id = %s отсутствует в БД. " +
                         "Выполнить операцию невозможно!", notExistingBookerId)));
@@ -120,7 +120,7 @@ public class BookingServiceTest {
     }
 
     @Test
-    void createBookingNotExistingItemTest() {
+    void testCreateBookingNotExistingItem() {
         Mockito.when(userRepository.findById(Mockito.anyLong()))
                 .thenReturn(Optional.ofNullable(booker));
         Mockito.when(itemRepository.findById(Mockito.any()))
@@ -136,7 +136,7 @@ public class BookingServiceTest {
 
 
     @Test
-    void approveBookingTest() {
+    void testApproveBooking() {
         Mockito.when(userRepository.findById(Mockito.anyLong()))
                 .thenReturn(Optional.ofNullable(owner));
         Mockito.when(itemRepository.findById(Mockito.anyLong()))
@@ -152,7 +152,7 @@ public class BookingServiceTest {
     }
 
     @Test
-    void notApproveBookingTest() {
+    void testNotApproveBooking() {
         Mockito.when(userRepository.findById(Mockito.anyLong()))
                 .thenReturn(Optional.ofNullable(owner));
         Mockito.when(itemRepository.findById(Mockito.anyLong()))
@@ -168,7 +168,7 @@ public class BookingServiceTest {
     }
 
     @Test
-    void getBookingByIdTest() {
+    void testGetBookingById() {
         Mockito.when(userRepository.findById(Mockito.anyLong()))
                 .thenReturn(Optional.ofNullable(owner));
         Mockito.when(itemRepository.findById(Mockito.anyLong()))
@@ -182,7 +182,7 @@ public class BookingServiceTest {
     }
 
     @Test
-    void getNotExistingBookingByIdTest() {
+    void testGetNotExistingBookingById() {
         Mockito.when(userRepository.findById(Mockito.anyLong()))
                 .thenReturn(Optional.ofNullable(owner));
         Mockito.when(bookingRepository.findById(Mockito.any()))
@@ -196,7 +196,7 @@ public class BookingServiceTest {
     }
 
     @Test
-    void getBookingsOneBookerTest() {
+    void testGetBookingsOneBooker() {
         Mockito.when(userRepository.findById(Mockito.anyLong()))
                 .thenReturn(Optional.ofNullable(booker));
         Mockito.when(bookingRepository.findAllByBookerId(Mockito.anyLong(), Mockito.any()))
@@ -207,7 +207,7 @@ public class BookingServiceTest {
     }
 
     @Test
-    void getBookingsOneBookerEmptyTest() {
+    void testGetBookingsOneBookerEmpty() {
         Mockito.when(userRepository.findById(Mockito.anyLong()))
                 .thenReturn(Optional.ofNullable(booker));
         List<Booking> bookingList = new ArrayList<>();
@@ -220,7 +220,7 @@ public class BookingServiceTest {
     }
 
     @Test
-    void getBookingsOneBookerStateCurrentTest() {
+    void testGetBookingsOneBookerStateCurrent() {
         LocalDateTime currentBookingStart = LocalDateTime.of(2023, 9, 1, 12, 0);
         LocalDateTime currentBookingEnd = LocalDateTime.of(2023, 9, 30, 12, 0);
         bookingApproved.setStart(currentBookingStart);
@@ -239,7 +239,7 @@ public class BookingServiceTest {
     }
 
     @Test
-    void getBookingsOneBookerStatePastTest() {
+    void testGetBookingsOneBookerStatePast() {
         LocalDateTime currentBookingStart = LocalDateTime.of(2023, 8, 1, 12, 0);
         LocalDateTime currentBookingEnd = LocalDateTime.of(2023, 8, 31, 12, 0);
         bookingApproved.setStart(currentBookingStart);
@@ -257,7 +257,7 @@ public class BookingServiceTest {
     }
 
     @Test
-    void getBookingsOneBookerStateFutureTest() {
+    void testGetBookingsOneBookerStateFuture() {
         LocalDateTime currentBookingStart = LocalDateTime.of(2023, 10, 1, 12, 0);
         LocalDateTime currentBookingEnd = LocalDateTime.of(2023, 10, 31, 12, 0);
         bookingApproved.setStart(currentBookingStart);
@@ -275,7 +275,7 @@ public class BookingServiceTest {
     }
 
     @Test
-    void getBookingsOneBookerStateWaitingTest() {
+    void testGetBookingsOneBookerStateWaiting() {
         Mockito.when(userRepository.findById(Mockito.anyLong()))
                 .thenReturn(Optional.ofNullable(booker));
         Mockito.when(bookingRepository.findAllByBookerIdAndStatus(Mockito.anyLong(), Mockito.any(), Mockito.any()))
@@ -286,7 +286,7 @@ public class BookingServiceTest {
     }
 
     @Test
-    void getBookingsOneBookerStateRejectedTest() {
+    void testGetBookingsOneBookerStateRejected() {
         Mockito.when(userRepository.findById(Mockito.anyLong()))
                 .thenReturn(Optional.ofNullable(booker));
         Mockito.when(bookingRepository.findAllByBookerIdAndStatus(Mockito.anyLong(), Mockito.any(), Mockito.any()))
@@ -297,7 +297,7 @@ public class BookingServiceTest {
     }
 
     @Test
-    void getBookingsOneOwnerTest() {
+    void testGetBookingsOneOwner() {
         Mockito.when(userRepository.findById(Mockito.anyLong()))
                 .thenReturn(Optional.ofNullable(owner));
         Mockito.when(itemRepository.existsAllByOwnerId(Mockito.anyLong()))
@@ -310,7 +310,7 @@ public class BookingServiceTest {
     }
 
     @Test
-    void getBookingsOneOwnerStateCurrentTest() {
+    void testGetBookingsOneOwnerStateCurrent() {
         LocalDateTime currentBookingStart = LocalDateTime.of(2023, 9, 1, 12, 0);
         LocalDateTime currentBookingEnd = LocalDateTime.of(2023, 9, 30, 12, 0);
         bookingApproved.setStart(currentBookingStart);
@@ -330,7 +330,7 @@ public class BookingServiceTest {
     }
 
     @Test
-    void getBookingsOneOwnerStatePastTest() {
+    void testGetBookingsOneOwnerStatePast() {
         LocalDateTime currentBookingStart = LocalDateTime.of(2023, 8, 1, 12, 0);
         LocalDateTime currentBookingEnd = LocalDateTime.of(2023, 8, 31, 12, 0);
         bookingApproved.setStart(currentBookingStart);
@@ -350,7 +350,7 @@ public class BookingServiceTest {
     }
 
     @Test
-    void getBookingsOneOwnerStateFutureTest() {
+    void testGetBookingsOneOwnerStateFuture() {
         LocalDateTime currentBookingStart = LocalDateTime.of(2023, 10, 1, 12, 0);
         LocalDateTime currentBookingEnd = LocalDateTime.of(2023, 10, 31, 12, 0);
         bookingApproved.setStart(currentBookingStart);
@@ -370,7 +370,7 @@ public class BookingServiceTest {
     }
 
     @Test
-    void getBookingsOneOwnerStateWaitingTest() {
+    void testGetBookingsOneOwnerStateWaiting() {
         Mockito.when(userRepository.findById(Mockito.anyLong()))
                 .thenReturn(Optional.ofNullable(owner));
         Mockito.when(itemRepository.existsAllByOwnerId(Mockito.anyLong()))
@@ -383,7 +383,7 @@ public class BookingServiceTest {
     }
 
     @Test
-    void getBookingsOneOwnerStateRejectedTest() {
+    void testGetBookingsOneOwnerStateRejected() {
         Mockito.when(userRepository.findById(Mockito.anyLong()))
                 .thenReturn(Optional.ofNullable(owner));
         Mockito.when(itemRepository.existsAllByOwnerId(Mockito.anyLong()))
