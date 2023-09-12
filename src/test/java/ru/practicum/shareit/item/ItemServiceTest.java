@@ -91,21 +91,21 @@ class ItemServiceTest {
     private final long testOneBookingId = 301;
     private final Booking oneBooking = Booking.builder().id(testOneBookingId)
             .start(LocalDateTime.of(2023, 9, 1, 12, 0))
-            .end(LocalDateTime.of(2023, 9, 10, 12, 0)).status(Status.APPROVED)
+            .end(LocalDateTime.of(2023, 9, 30, 12, 0)).status(Status.APPROVED)
             .item(item).booker(oneBooker).build();
     private final ItemBookingDto oneBookingDto = ItemBookingDto.builder().id(testOneBookingId)
             .start(LocalDateTime.of(2023, 9, 1, 12, 0))
-            .end(LocalDateTime.of(2023, 9, 10, 12, 0)).status(Status.APPROVED)
+            .end(LocalDateTime.of(2023, 9, 30, 12, 0)).status(Status.APPROVED)
             .itemId(testItemId).bookerId(testOneBookerId).build();
 
     private final long testTwoBookingId = 302;
     private final Booking twoBooking = Booking.builder().id(testTwoBookingId)
-            .start(LocalDateTime.of(2023, 9, 11, 12, 0))
-            .end(LocalDateTime.of(2023, 9, 20, 12, 0)).status(Status.APPROVED)
+            .start(LocalDateTime.of(2023, 10, 1, 12, 0))
+            .end(LocalDateTime.of(2023, 10, 31, 12, 0)).status(Status.APPROVED)
             .item(item).booker(twoBooker).build();
     private final ItemBookingDto twoBookingDto = ItemBookingDto.builder().id(testTwoBookingId)
-            .start(LocalDateTime.of(2023, 9, 11, 12, 0))
-            .end(LocalDateTime.of(2023, 9, 20, 12, 0)).status(Status.APPROVED)
+            .start(LocalDateTime.of(2023, 10, 1, 12, 0))
+            .end(LocalDateTime.of(2023, 10, 31, 12, 0)).status(Status.APPROVED)
             .itemId(testItemId).bookerId(testTwoBookerId).build();
 
     @Test
@@ -159,7 +159,30 @@ class ItemServiceTest {
         assertEquals(itemService.getById(testItemId, testOwnerId), fullResponseItemDto);
     }
 
+    @Test
+    void getItemByIdWithCommentsWithBookingsTest() {
+        Mockito.when(itemRepository.findById(Mockito.anyLong()))
+                .thenReturn(Optional.ofNullable(item));
 
+        List<Comment> comments = new ArrayList<>();
+        comments.add(comment);
+        Mockito.when(commentRepository.findByItemId(Mockito.anyLong()))
+                .thenReturn(comments);
+        List<ResponseCommentDto> responseComments = new ArrayList<>();
+        responseComments.add(responseCommentDto);
+        fullResponseItemDto.setComments(responseComments);
+
+        List<Booking> bookings = new ArrayList<>();
+        bookings.add(oneBooking);
+        bookings.add(twoBooking);
+        Mockito.when(bookingRepository.findByItemId(Mockito.anyLong(), Mockito.any()))
+                .thenReturn(bookings);
+        fullResponseItemDto.setLastBooking(oneBookingDto);
+        fullResponseItemDto.setNextBooking(twoBookingDto);
+        System.out.println("!!! " + itemService.getById(testItemId, testOwnerId));
+        System.out.println("!!! " + fullResponseItemDto);
+        assertEquals(itemService.getById(testItemId, testOwnerId), fullResponseItemDto);
+    }
 
     @Test
     void testGetItemsOneOwner() {
@@ -216,7 +239,39 @@ class ItemServiceTest {
         assertEquals(itemService.getItemsOneOwner(testItemId, 0, 10),  responseItemList);
     }
 
+    @Test
+    void getItemsOneOwnerWithCommentsWithBookingsTest() {
+        Mockito.when(userRepository.findById(Mockito.anyLong()))
+                .thenReturn(Optional.ofNullable(owner));
 
+        List<Item> itemList = new ArrayList<>();
+        itemList.add(item);
+        Page<Item> items = new PageImpl<>(itemList);
+
+        Mockito.when(itemRepository.findAllByOwnerId(Mockito.anyLong(), Mockito.any()))
+                .thenReturn(items);
+
+        List<Comment> comments = new ArrayList<>();
+        comments.add(comment);
+        Mockito.when(commentRepository.findAllByItemIdIn(Mockito.anyList(), Mockito.any()))
+                .thenReturn(comments);
+        List<ResponseCommentDto> responseComments = new ArrayList<>();
+        responseComments.add(responseCommentDto);
+        fullResponseItemDto.setComments(responseComments);
+
+        List<Booking> bookings = new ArrayList<>();
+        bookings.add(oneBooking);
+        bookings.add(twoBooking);
+        Mockito.when(bookingRepository.findAllByItemIdInAndStatus(Mockito.anyList(), Mockito.any(), Mockito.any()))
+                .thenReturn(bookings);
+
+        fullResponseItemDto.setLastBooking(oneBookingDto);
+        fullResponseItemDto.setNextBooking(twoBookingDto);
+        List<FullResponseItemDto> responseItemList = new ArrayList<>();
+        responseItemList.add(fullResponseItemDto);
+        System.out.println(itemService.getItemsOneOwner(testItemId, 0, 10));
+        assertEquals(itemService.getItemsOneOwner(testItemId, 0, 10),  responseItemList);
+    }
 
     @Test
     void testUpdateItem() {
