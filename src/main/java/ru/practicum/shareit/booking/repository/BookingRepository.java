@@ -1,5 +1,7 @@
 package ru.practicum.shareit.booking.repository;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -15,36 +17,36 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
             "JOIN Item i ON (i.id = b.item.id) " +
             "JOIN User u ON (u.id = i.owner.id) ";
 
-    List<Booking> findAllByBookerId(Long bookerId, Sort sortByStart);
+    Page<Booking> findAllByBookerId(Long bookerId, Pageable pageable);
 
-    List<Booking> findAllByBookerIdAndStartBeforeAndEndAfter(Long bookerId, LocalDateTime currentMomentOne,
-                                                             LocalDateTime currentMomentTwo, Sort sortByStart);
+    Page<Booking> findAllByBookerIdAndStartBeforeAndEndAfter(Long bookerId, LocalDateTime currentMomentOne,
+                                                             LocalDateTime currentMomentTwo, Pageable pageable);
 
-    List<Booking> findAllByBookerIdAndEndBefore(Long bookerId, LocalDateTime currentMoment, Sort sortByStart);
+    Page<Booking> findAllByBookerIdAndEndBefore(Long bookerId, LocalDateTime currentMoment, Pageable pageable);
 
-    List<Booking> findAllByBookerIdAndStartAfter(Long bookerId, LocalDateTime currentMoment, Sort sortByStart);
+    Page<Booking> findAllByBookerIdAndStartAfter(Long bookerId, LocalDateTime currentMoment, Pageable pageable);
 
-    List<Booking> findAllByBookerIdAndStatus(long bookerId, Status status, Sort sortByStart);
+    Page<Booking> findAllByBookerIdAndStatus(long bookerId, Status status, Pageable pageable);
 
     @Query(queryBasis +
            "WHERE i.owner.id = ?1")
-    List<Booking> allBookersByOwnerId(long ownerId, Sort sortByStart);
+    Page<Booking> allBookersByOwnerId(long ownerId, Pageable pageable);
 
     @Query(queryBasis +
             "WHERE i.owner.id = ?1 AND b.start < ?2 AND b.end > ?2")
-    List<Booking> currentBookersByOwnerId(Long bookerId, LocalDateTime currentMoment, Sort sortByStart);
+    Page<Booking> currentBookersByOwnerId(Long bookerId, LocalDateTime currentMoment, Pageable pageable);
 
     @Query(queryBasis +
             "WHERE i.owner.id = ?1 AND b.end < ?2")
-    List<Booking> pastBookersByOwnerId(Long bookerId, LocalDateTime currentMoment, Sort sortByStart);
+    Page<Booking> pastBookersByOwnerId(Long bookerId, LocalDateTime currentMoment, Pageable pageable);
 
     @Query(queryBasis +
             "WHERE i.owner.id = ?1 AND b.start > ?2")
-    List<Booking> futureBookersByOwnerId(Long bookerId, LocalDateTime currentMoment, Sort sortByStart);
+    Page<Booking> futureBookersByOwnerId(Long bookerId, LocalDateTime currentMoment, Pageable pageable);
 
     @Query(queryBasis +
             "WHERE i.owner.id = ?1 AND b.status = ?2")
-    List<Booking> bookersByStatusAndOwnerId(Long bookerId, Status status, Sort sortByStart);
+    Page<Booking> bookersByStatusAndOwnerId(Long bookerId, Status status, Pageable pageable);
 
     Boolean existsAllByBookerIdAndStatusAndEndBefore(Long bookerId, Status status, LocalDateTime currentMoment);
 

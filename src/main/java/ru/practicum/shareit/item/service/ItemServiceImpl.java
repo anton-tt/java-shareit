@@ -2,6 +2,9 @@ package ru.practicum.shareit.item.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import ru.practicum.shareit.booking.dto.ItemBookingDto;
@@ -22,6 +25,8 @@ import ru.practicum.shareit.item.dto.ResponseItemDto;
 import ru.practicum.shareit.item.mapper.ItemMapper;
 import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.item.repository.ItemRepository;
+import ru.practicum.shareit.request.model.ItemRequest;
+import ru.practicum.shareit.request.repository.ItemRequestRepository;
 import ru.practicum.shareit.user.model.User;
 import ru.practicum.shareit.user.repository.UserRepository;
 import java.time.LocalDateTime;
@@ -42,6 +47,7 @@ public class ItemServiceImpl implements ItemService {
     private final UserRepository userRepository;
     private final BookingRepository bookingRepository;
     private final CommentRepository commentRepository;
+    private final ItemRequestRepository itemRequestRepository;
 
     private User getUserById(long id) {
         return userRepository.findById(id).orElseThrow(() -> new NotFoundException(String.format("Пользователь " +
@@ -53,13 +59,24 @@ public class ItemServiceImpl implements ItemService {
                 "с id = %s отсутствует в БД. Выполнить операцию невозможно!", id)));
     }
 
+    private ItemRequest getItemRequestById(long id) {
+        return itemRequestRepository.findById(id).orElseThrow(() -> new NotFoundException(
+                String.format("запрос на вещь с id = %s отсутствует в БД. Выполнить операцию невозможно!", id)));
+    }
+
     @Override
     public ResponseItemDto create(RequestItemDto itemDto, long userId) {
         User owner = getUserById(userId);
         Item dataItem = ItemMapper.toItem(itemDto, owner);
+        long requestId = itemDto.getRequestId();
+        if (requestId > 0) {
+            dataItem.setItemRequest(getItemRequestById(requestId));
+        }
         Item item = itemRepository.save(dataItem);
-        log.info("Данные вещи добавлены в БД: {}.", item);
+        log.info("Данные новой вещи добавлены в БД: {}.", item);
+
         ResponseItemDto responseItemDto = ItemMapper.toResponseItemDto(item);
+        responseItemDto.setRequestId(requestId);
         log.info("Новая вещь создана: {}.", responseItemDto);
         return responseItemDto;
     }
@@ -77,7 +94,7 @@ public class ItemServiceImpl implements ItemService {
         if ((item.getOwner().getId() == ownerId) && (oneItemBooking != null)) {
             List<Booking> oneItemBookingByStatus = oneItemBooking
                     .stream()
-                    .filter(booking -> (booking.getStatus().equals(Status.APPROVED)))
+                    .filter((Booking booking) -> (booking.getStatus().equals(Status.APPROVED)))
                     .collect(toList());
 
             setLastAndNextBookings(itemDto, oneItemBookingByStatus, LocalDateTime.now());
@@ -87,12 +104,13 @@ public class ItemServiceImpl implements ItemService {
     }
 
     @Override
-    public List<FullResponseItemDto> getItemsOneOwner(long userId) {
+    public List<FullResponseItemDto> getItemsOneOwner(long userId, int from, int size) {
         getUserById(userId);
         log.info("Получение данных всех вещей пользователя из БД.");
         LocalDateTime currentMoment = LocalDateTime.now();
 
-        List<Item> itemList = itemRepository.findAllByOwnerId(userId);
+        Pageable pageable = PageRequest.of(from / size, size);
+        Page<Item> itemList = itemRepository.findAllByOwnerId(userId, pageable);
         List<Long> itemIdList = itemList.stream().map(Item::getId).collect(toList());
 
         Map<Item, List<Comment>> allComments = commentRepository.findAllByItemIdIn(itemIdList,
@@ -107,7 +125,7 @@ public class ItemServiceImpl implements ItemService {
 
         return itemList
                 .stream()
-                .map(item -> {
+                .map((Item item) -> {
                     FullResponseItemDto itemDto = ItemMapper.toFullResponseItemDto(item);
                     setComments(itemDto, allComments.get(item));
                     return setLastAndNextBookings(itemDto, allBookings.get(item), currentMoment);
@@ -147,10 +165,12 @@ public class ItemServiceImpl implements ItemService {
     }
 
     @Override
-    public List<ResponseItemDto> search(String text) {
+    public List<ResponseItemDto> search(String text, int from, int size) {
         List<ResponseItemDto> itemDtoList = new ArrayList<>();
         if (!text.isBlank()) {
-            itemDtoList = itemRepository.search(text)
+            Pageable pageable = PageRequest.of(from / size, size);
+            Page<Item> itemList = itemRepository.search(text, pageable);
+            itemDtoList = itemList
                     .stream()
                     .filter(Item::isAvailable)
                     .map(ItemMapper::toResponseItemDto)

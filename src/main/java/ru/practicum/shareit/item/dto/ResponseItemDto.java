@@ -11,6 +11,6 @@ public class ResponseItemDto {
     private String name;
     private String description;
     private Boolean available;
-    private Long requestId;
+    private long requestId;
 
 }

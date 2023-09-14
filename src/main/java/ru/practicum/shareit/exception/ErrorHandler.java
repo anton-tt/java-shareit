@@ -34,13 +34,6 @@ public class ErrorHandler {
     }
 
     @ExceptionHandler
-    @ResponseStatus(HttpStatus.CONFLICT)
-    public ErrorResponse handleDataConflictsException(final DataConflictsException e) {
-        log.info("Ошибка 409: {}", e.getMessage());
-        return new ErrorResponse(e.getMessage());
-    }
-
-    @ExceptionHandler
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ErrorResponse constraint(ConstraintViolationException e) {
         log.info("Ошибка 409: {}", e.getMessage());
