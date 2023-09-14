@@ -10,6 +10,7 @@ import ru.practicum.shareit.booking.service.BookingService;
 import javax.validation.Valid;
 import javax.validation.constraints.Min;
 import java.util.List;
+
 import static ru.practicum.shareit.utils.Constants.X_SHARER_USER_ID;
 
 @RestController
