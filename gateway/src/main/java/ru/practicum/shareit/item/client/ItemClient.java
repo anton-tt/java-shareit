@@ -12,6 +12,7 @@ import ru.practicum.shareit.client.BaseClient;
 import ru.practicum.shareit.comment.dto.RequestCommentDto;
 import ru.practicum.shareit.item.dto.RequestItemDto;
 import java.util.Map;
+
 @Slf4j
 @Service
 public class ItemClient extends BaseClient {
