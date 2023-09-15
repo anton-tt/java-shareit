@@ -26,7 +26,6 @@ public class ItemController {
     @PostMapping
     public ResponseItemDto createItem(@RequestHeader(X_SHARER_USER_ID) Long userId,
                                       @RequestBody RequestItemDto item) {
-        System.out.println("!!!!!!!!!!!!! " + userId);
         log.info("");
         log.info("Добавление новой вещи: {}", item);
         return itemService.create(item, userId);

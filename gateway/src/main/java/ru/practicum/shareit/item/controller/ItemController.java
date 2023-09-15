@@ -45,7 +45,7 @@ public class ItemController {
                                                   @RequestParam(defaultValue = "10") @Min(1) int size) {
         log.info("");
         log.info("Поиск всех вещей, созданных пользователем с id = {}", userId);
-        return itemClient.getItemsOneOwner(userId, from, size);
+        return itemClient.getItemsOneUser(userId, from, size);
     }
 
     @PatchMapping("/{id}")
