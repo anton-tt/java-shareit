@@ -35,7 +35,7 @@ public class ItemController {
     public ResponseEntity<Object> getItemById(@RequestHeader(X_SHARER_USER_ID) long userId,
                                               @PathVariable long id) {
         log.info("");
-        log.info("Gateway: поступил запрос на получение данных пользователя.");
+        log.info("Gateway: поступил запрос на получение данных вещи.");
         return itemClient.getById(userId, id);
     }
 

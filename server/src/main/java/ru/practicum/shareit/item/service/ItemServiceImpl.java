@@ -124,7 +124,7 @@ public class ItemServiceImpl implements ItemService {
                 .stream()
                 .collect(groupingBy(Booking::getItem, toList()));
 
-        return itemList
+         List<FullResponseItemDto> list = itemList
                 .stream()
                 .map((Item item) -> {
                     FullResponseItemDto itemDto = ItemMapper.toFullResponseItemDto(item);
@@ -132,6 +132,7 @@ public class ItemServiceImpl implements ItemService {
                     return setLastAndNextBookings(itemDto, allBookings.get(item), currentMoment);
                 })
                 .collect(toList());
+         return list;
     }
 
     @Override
