@@ -31,6 +31,7 @@ import ru.practicum.shareit.user.model.User;
 import ru.practicum.shareit.user.repository.UserRepository;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import static java.util.stream.Collectors.groupingBy;
@@ -124,7 +125,7 @@ public class ItemServiceImpl implements ItemService {
                 .stream()
                 .collect(groupingBy(Booking::getItem, toList()));
 
-         List<FullResponseItemDto> list = itemList
+        List<FullResponseItemDto> resultList = itemList
                 .stream()
                 .map((Item item) -> {
                     FullResponseItemDto itemDto = ItemMapper.toFullResponseItemDto(item);
@@ -132,7 +133,8 @@ public class ItemServiceImpl implements ItemService {
                     return setLastAndNextBookings(itemDto, allBookings.get(item), currentMoment);
                 })
                 .collect(toList());
-         return list;
+        Collections.reverse(resultList);
+        return resultList;
     }
 
     @Override
