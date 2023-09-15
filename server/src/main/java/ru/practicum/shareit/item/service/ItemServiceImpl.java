@@ -112,7 +112,7 @@ public class ItemServiceImpl implements ItemService {
         LocalDateTime currentMoment = LocalDateTime.now();
 
         Pageable pageable = PageRequest.of(from / size, size);
-        Page<Item> itemList = itemRepository.findAllByOwnerId(userId, pageable);
+        Page<Item> itemList = itemRepository.findAllByOwnerIdOrderByIdAsc(userId, pageable);
         List<Long> itemIdList = itemList.stream().map(Item::getId).collect(toList());
 
         Map<Item, List<Comment>> allComments = commentRepository.findAllByItemIdIn(itemIdList,

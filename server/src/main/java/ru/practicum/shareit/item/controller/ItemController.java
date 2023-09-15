@@ -46,9 +46,9 @@ public class ItemController {
                                                      @RequestParam(defaultValue = "10") int size) {
         log.info("");
         log.info("Поиск всех вещей, созданных пользователем с id = {}", userId);
-        List<FullResponseItemDto> resultList = itemService.getItemsOneOwner(userId, from, size);
-        Collections.reverse(resultList);
-        return resultList;
+        //List<FullResponseItemDto> resultList = itemService.getItemsOneOwner(userId, from, size);
+        //Collections.reverse(resultList);
+        return itemService.getItemsOneOwner(userId, from, size);//resultList;
     }
 
     @PatchMapping("/{id}")
