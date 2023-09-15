@@ -11,6 +11,7 @@ import ru.practicum.shareit.item.dto.RequestItemDto;
 import ru.practicum.shareit.item.dto.ResponseItemDto;
 import ru.practicum.shareit.item.service.ItemService;
 import javax.validation.Valid;
+import java.util.Collections;
 import java.util.List;
 import static ru.practicum.shareit.utils.Constants.X_SHARER_USER_ID;
 
@@ -45,7 +46,9 @@ public class ItemController {
                                                      @RequestParam(defaultValue = "10") int size) {
         log.info("");
         log.info("Поиск всех вещей, созданных пользователем с id = {}", userId);
-        return itemService.getItemsOneOwner(userId, from, size);
+        List<FullResponseItemDto> resultList = itemService.getItemsOneOwner(userId, from, size);
+        Collections.reverse(resultList);
+        return resultList;
     }
 
     @PatchMapping("/{id}")
